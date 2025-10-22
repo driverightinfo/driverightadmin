@@ -292,11 +292,16 @@
                 const paymentsResponse = await fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=Payments`);
                 const paymentsText = await paymentsResponse.text();
                 allPayments = parseData(paymentsText);
+                
+                // Remove old, broken records
+                allStudents = allStudents.filter(s => s.ID && s.ID.startsWith('S'));
+                allPayments = allPayments.filter(p => p.PAYMENT_ID && p.PAYMENT_ID.startsWith('P'));
 
                 // Enrich students with balance and total paid
                 const studentPayments = allPayments.reduce((acc, p) => {
                     if (!acc[p.STUDENT_ID]) acc[p.STUDENT_ID] = 0;
-                    acc[p.STUDENT_ID] += parseFloat(p.AMOUNT);
+                    // Use parseFloat here as amount might come as a string/number from the sheet
+                    acc[p.STUDENT_ID] += parseFloat(p.AMOUNT) || 0; 
                     return acc;
                 }, {});
 
@@ -325,24 +330,39 @@
             try {
                 const jsonText = text.substring(text.indexOf('(') + 1, text.lastIndexOf(')'));
                 const data = JSON.parse(jsonText);
-                const columns = data.table.cols.map(col => col.label);
+                
+                // Helper to sanitize column names for consistency
+                const sanitizeColName = (name) => name.toUpperCase().replace(/\s+/g, '_').trim();
+
+                const columns = data.table.cols.map(col => sanitizeColName(col.label));
                 const rows = data.table.rows;
 
                 return rows.map(row => {
                     const item = {};
                     row.c.forEach((cell, i) => {
-                        const colName = columns[i].toUpperCase().replace(/\s/g, '_');
-                        if (cell && cell.v !== null) {
-                             if (typeof cell.v === 'string') {
-                                item[colName] = cell.v.trim();
-                             } else if (cell.f && colName.includes('DATE')) {
-                                // Use formatted value for date if available
-                                item[colName] = cell.f;
-                             } else {
-                                item[colName] = cell.v;
-                             }
-                        } else {
+                        const colName = columns[i]; // Use sanitized name
+                        
+                        if (cell === null || cell.v === null) {
                             item[colName] = '';
+                            return;
+                        }
+                        
+                        // Prioritize formatted value (f) for dates and display values
+                        if (cell.f) {
+                            item[colName] = cell.f.trim();
+                        } else if (typeof cell.v === 'string') {
+                            item[colName] = cell.v.trim();
+                        } else if (typeof cell.v === 'number') {
+                            item[colName] = cell.v;
+                        } else if (typeof cell.v === 'object' && cell.v !== null) {
+                            // Handle potential date objects which come as arrays/objects
+                            if (colName.includes('DATE') && Array.isArray(cell.v)) {
+                                item[colName] = new Date(cell.v[0], cell.v[1], cell.v[2]).toLocaleDateString();
+                            } else {
+                                item[colName] = cell.v;
+                            }
+                        } else {
+                             item[colName] = '';
                         }
                     });
                     return item;
@@ -360,22 +380,25 @@
             if (!container) return;
 
             if (students.length === 0) {
-                document.getElementById('studentStatus').textContent = 'No students found.';
+                document.getElementById('studentStatus').textContent = 'No students found. Use "Add New Student" to begin.';
                 container.innerHTML = '';
                 return;
             }
 
             document.getElementById('studentStatus').textContent = '';
             container.innerHTML = students.map(s => {
-                const balanceColor = s.BALANCE > 0 ? 'text-red-500' : 'text-primary-green';
-                const balanceText = s.BALANCE === 0 ? 'Paid' : `RM ${s.BALANCE.toFixed(2)}`;
+                const totalFee = parseFloat(s.TOTAL_FEE) || 0;
+                const balance = s.BALANCE || 0;
+                const balanceColor = balance > 0 ? 'text-red-500' : 'text-primary-green';
+                const balanceText = balance <= 0 ? 'Paid' : `RM ${balance.toFixed(2)}`;
+                
                 return `
                     <tr class="hover:bg-gray-50 transition-colors duration-150">
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${s.ID || 'N/A'}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${s.FULL_NAME || 'N/A'}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${s.PHONE_NUMBER || 'N/A'}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${s.COURSE_TYPE || 'N/A'}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">RM ${parseFloat(s.TOTAL_FEE).toFixed(2) || '0.00'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">RM ${totalFee.toFixed(2)}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-bold ${balanceColor}">${balanceText}</td>
                     </tr>
                 `;
@@ -394,9 +417,12 @@
 
             document.getElementById('paymentStatus').textContent = '';
             container.innerHTML = payments.map(p => {
+                // Find student by ID (using the normalized column name 'STUDENT_ID')
                 const student = allStudents.find(s => s.ID === p.STUDENT_ID) || {FULL_NAME: 'Unknown Student'};
-                const receiptButton = p.RECEIPT_URL && p.RECEIPT_URL.startsWith('http')
-                    ? `<button onclick="window.open('${p.RECEIPT_URL}', '_blank')" class="bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold py-1 px-3 rounded-lg shadow-sm transition duration-150"><i class="fas fa-eye mr-1"></i> View Receipt</button>`
+                
+                const receiptUrl = p.RECEIPT_URL || '';
+                const receiptButton = receiptUrl.startsWith('http')
+                    ? `<button onclick="window.open('${receiptUrl}', '_blank')" class="bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold py-1 px-3 rounded-lg shadow-sm transition duration-150"><i class="fas fa-eye mr-1"></i> View Receipt</button>`
                     : `<span class="text-xs text-red-500">No Receipt Generated</span>`;
 
                 return `
@@ -425,6 +451,7 @@
                 const content = document.getElementById(`${tab}Content`);
 
                 if (button) {
+                    // Only show tabs that have a corresponding button (i.e., hide 'addStudent' button)
                     if (tab === tabName) {
                         button.classList.add('border-primary-green', 'text-primary-green');
                         button.classList.remove('border-transparent', 'text-secondary-gray', 'hover:text-primary-green');
@@ -437,7 +464,7 @@
                     content.classList.toggle('hidden', tab !== tabName);
                 }
             });
-            // Handle the addStudent tab button visibility/style manually since it's only linked from other tabs
+            // Special handling for Add Student: ensure it is shown when explicitly selected
             if (tabName === 'addStudent') {
                 document.getElementById('addStudentContent').classList.remove('hidden');
                 document.getElementById('studentsContent').classList.add('hidden');
@@ -450,7 +477,9 @@
             const textSpan = statusDiv.querySelector('span');
 
             statusDiv.className = `flex items-center text-sm font-medium ${colorClass}`;
-            icon.className = `fas fa-sync-alt mr-2 ${isSpinning ? 'animate-spin' : ''} ${colorClass.replace('text-', 'text-')}`;
+            // Use current text color for the spinner/icon color
+            const iconColor = colorClass.includes('red') ? 'text-red-500' : (colorClass.includes('yellow') ? 'text-yellow-500' : 'text-primary-green');
+            icon.className = `fas fa-sync-alt mr-2 ${isSpinning ? 'animate-spin' : ''} ${iconColor}`;
             textSpan.textContent = message;
         }
 
@@ -460,10 +489,14 @@
             const select = document.getElementById('recordStudentId');
             const selectedId = select.value;
             select.innerHTML = '<option value="">Select a Student...</option>';
-            students.forEach(s => {
+            
+            // Filter to ensure only valid student IDs are shown
+            const validStudents = students.filter(s => s.ID && s.ID.startsWith('S')); 
+
+            validStudents.forEach(s => {
                 const option = document.createElement('option');
                 option.value = s.ID;
-                option.textContent = `${s.FULL_NAME} (ID: ${s.ID})`;
+                option.textContent = `${s.FULL_NAME || 'N/A'} (ID: ${s.ID})`;
                 if (s.ID === selectedId) {
                     option.selected = true;
                 }
@@ -485,14 +518,21 @@
 
             const student = allStudents.find(s => s.ID === studentId);
             if (student) {
-                const balanceColor = student.BALANCE > 0 ? 'text-red-600' : 'text-primary-green';
+                const balance = student.BALANCE || 0;
+                const totalFee = parseFloat(student.TOTAL_FEE) || 0;
+                const totalPaid = student.TOTAL_PAID || 0;
+                
+                const balanceColor = balance > 0 ? 'text-red-600' : 'text-primary-green';
+                
                 detailsElement.innerHTML = `
-                    **Fee:** RM ${parseFloat(student.TOTAL_FEE).toFixed(2)} |
-                    **Paid:** RM ${student.TOTAL_PAID.toFixed(2)} |
-                    <span class="${balanceColor} font-bold">Balance: RM ${student.BALANCE.toFixed(2)}</span>
+                    **Fee:** RM ${totalFee.toFixed(2)} |
+                    **Paid:** RM ${totalPaid.toFixed(2)} |
+                    <span class="${balanceColor} font-bold">Balance: RM ${balance.toFixed(2)}</span>
                 `;
                 // Suggest remaining balance as default payment amount
-                amountInput.value = student.BALANCE > 0 ? student.BALANCE.toFixed(2) : '0.00';
+                amountInput.value = balance > 0 ? balance.toFixed(2) : '0.00';
+            } else {
+                 detailsElement.textContent = 'Student data not found.';
             }
         }
 
@@ -510,26 +550,21 @@
             statusElement.classList.add('text-blue-500');
 
             try {
-                // *** CRITICAL JSON FIX IMPLEMENTED HERE ***
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors', // Required for Google Apps Script Web Apps when using fetch
+                    mode: 'no-cors', 
                     cache: 'no-cache',
                     headers: {
-                        'Content-Type': 'application/json' // Tell the server we are sending JSON
+                        'Content-Type': 'application/json' 
                     },
-                    body: JSON.stringify(data) // Send the data as a JSON string
+                    body: JSON.stringify(data) 
                 });
 
-                // Since we use 'no-cors', we cannot read the response body directly,
-                // but a successful fetch usually indicates the request was received.
-                // We rely on the Apps Script to confirm success/failure by writing data.
+                // Since we use 'no-cors', we cannot read the response body directly.
+                // We assume success and force a data refresh to reflect changes from Apps Script.
 
-                // Simulate a successful response until a true server response can be handled (not possible with no-cors)
-                if (data.action === 'add_payment') {
-                    // Give the script a moment to process and return a receipt URL (though we can't capture it)
-                    await new Promise(resolve => setTimeout(resolve, 3000));
-                }
+                // Wait a moment for Apps Script to finish writing data before fetching
+                await new Promise(resolve => setTimeout(resolve, 3000));
 
                 statusElement.textContent = 'Success! Updating data.';
                 statusElement.classList.remove('text-blue-500');
@@ -539,11 +574,11 @@
                 await fetchData();
 
                 if (data.action === 'add_payment') {
-                    showModal('Payment Recorded', 'Payment has been successfully recorded and the receipt should be generated and linked in the Payments tab shortly.');
+                    showModal('Payment Recorded', 'Payment has been successfully recorded. Check the Payments tab shortly for the receipt URL.');
                     // Switch back to payments to view history
                     changeTab('payments');
                 } else {
-                     showModal('Student Added', 'New student has been successfully added to the system.');
+                     showModal('Student Added', 'New student has been successfully added to the system. You should see them in the Students list now.');
                      // Switch back to students
                      changeTab('students');
                 }
@@ -614,6 +649,7 @@
 
             await postDataToAppsScript(studentData);
             statusElement.innerHTML = '';
+            // Clear inputs after successful submission
             document.getElementById('addStudentName').value = '';
             document.getElementById('addStudentPhone').value = '';
             document.getElementById('addStudentCourse').value = '';
