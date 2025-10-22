@@ -52,6 +52,9 @@
                     <i class="fas fa-sync-alt mr-2 animate-spin text-yellow-500"></i>
                     <span>Syncing...</span>
                 </div>
+                 <button onclick="toggleCredentials()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-3 rounded-lg text-sm transition duration-150 shadow-md">
+                    <i class="fas fa-cog mr-1"></i> Configuration
+                </button>
             </div>
         </header>
 
@@ -70,8 +73,8 @@
                     <p class="mt-1 text-xs text-gray-500">The Student data will be fetched from this sheet.</p>
                 </div>
             </div>
-            <button onclick="saveCredentialsAndReload()" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-150 shadow-md">
-                Save Credentials and Reload
+            <button onclick="saveCredentialsAndReload()" class="mt-4 w-full bg-primary-green hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition duration-150 shadow-md">
+                <i class="fas fa-link mr-2"></i> Save & Connect
             </button>
         </div>
 
@@ -231,6 +234,22 @@
 
         // --- CREDENTIALS HANDLING ---
 
+        function toggleCredentials() {
+            const credentialsDiv = document.getElementById('credentials');
+            const mainContentDiv = document.getElementById('mainContent');
+            
+            // Toggle visibility of the credentials section
+            const isHidden = credentialsDiv.classList.toggle('hidden');
+            
+            // If we are showing credentials, hide main content
+            if (!isHidden) {
+                mainContentDiv.classList.add('hidden');
+            } else if (APPS_SCRIPT_URL && SHEET_URL) {
+                // If we are hiding credentials AND we have URLs, show main content
+                mainContentDiv.classList.remove('hidden');
+            }
+        }
+        
         function saveCredentialsAndReload() {
             const webAppUrl = document.getElementById('webAppUrl').value.trim();
             const sheetUrl = document.getElementById('sheetUrl').value.trim();
@@ -262,10 +281,12 @@
             document.getElementById('sheetUrl').value = SHEET_URL;
 
             if (APPS_SCRIPT_URL && SHEET_URL) {
+                // If credentials exist, hide the input section and show the app
                 document.getElementById('credentials').classList.add('hidden');
                 document.getElementById('mainContent').classList.remove('hidden');
                 fetchData();
             } else {
+                // If no credentials, show the input section and hide the app
                 document.getElementById('credentials').classList.remove('hidden');
                 document.getElementById('mainContent').classList.add('hidden');
                 updateSyncStatus('Ready to configure.', 'text-blue-500');
