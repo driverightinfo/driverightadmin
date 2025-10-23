@@ -416,7 +416,7 @@
                 return `
                     <tr class="hover:bg-gray-50 transition-colors duration-150">
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${s.ID || 'N/A'}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${s.FULL_NAME || 'N/A'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${s.NAME || 'N/A'}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${s.PHONE_NUMBER || 'N/A'}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${s.COURSE_TYPE || 'N/A'}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">RM ${totalFee.toFixed(2)}</td>
@@ -439,7 +439,7 @@
             document.getElementById('paymentStatus').textContent = '';
             container.innerHTML = payments.map(p => {
                 // Find student by ID (using the normalized column name 'STUDENT_ID')
-                const student = allStudents.find(s => s.ID === p.STUDENT_ID) || {FULL_NAME: 'Unknown Student'};
+                const student = allStudents.find(s => s.ID === p.STUDENT_ID) || {NAME: 'Unknown Student'};
                 
                 const receiptUrl = p.RECEIPT_URL || '';
                 const receiptButton = receiptUrl.startsWith('http')
@@ -449,7 +449,7 @@
                 return `
                     <tr class="hover:bg-gray-50 transition-colors duration-150">
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${p.PAYMENT_ID || 'N/A'}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${student.FULL_NAME}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${student.NAME}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${p.DATE || 'N/A'}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-primary-green font-semibold">RM ${parseFloat(p.AMOUNT).toFixed(2) || '0.00'}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${p.PAYMENT_METHOD || 'N/A'}</td>
@@ -517,7 +517,7 @@
             validStudents.forEach(s => {
                 const option = document.createElement('option');
                 option.value = s.ID;
-                option.textContent = `${s.FULL_NAME || 'N/A'} (ID: ${s.ID})`;
+                option.textContent = `${s.NAME || 'N/A'} (ID: ${s.ID})`;
                 if (s.ID === selectedId) {
                     option.selected = true;
                 }
@@ -662,7 +662,7 @@
 
             const studentData = {
                 action: 'add_student',
-                fullName: name,
+                name: name,
                 phoneNumber: phone,
                 courseType: course,
                 totalFee: parseFloat(fee).toFixed(2),
@@ -697,7 +697,7 @@
         document.getElementById('studentSearch').addEventListener('input', (e) => {
             const query = e.target.value.toLowerCase();
             const filteredStudents = allStudents.filter(s =>
-                s.FULL_NAME.toLowerCase().includes(query) ||
+                s.NAME.toLowerCase().includes(query) ||
                 s.ID.toLowerCase().includes(query) ||
                 s.PHONE_NUMBER.includes(query)
             );
@@ -707,10 +707,10 @@
         document.getElementById('paymentSearch').addEventListener('input', (e) => {
             const query = e.target.value.toLowerCase();
             const filteredPayments = allPayments.filter(p => {
-                const student = allStudents.find(s => s.ID === p.STUDENT_ID) || { FULL_NAME: '' };
+                const student = allStudents.find(s => s.ID === p.STUDENT_ID) || { NAME: '' };
                 return (
                     p.STUDENT_ID.toLowerCase().includes(query) ||
-                    student.FULL_NAME.toLowerCase().includes(query)
+                    student.NAME.toLowerCase().includes(query)
                 );
             });
             renderPayments(filteredPayments);
