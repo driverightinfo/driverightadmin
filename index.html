@@ -3,719 +3,674 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Driving School Manager</title>
+    <title>Driving School Management</title>
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Load Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* Custom scrollbar styling for better aesthetics */
-        ::-webkit-scrollbar {
-            width: 8px;
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fc;
         }
-        ::-webkit-scrollbar-thumb {
-            background: #10B981;
-            border-radius: 10px;
+        .container-card {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
         }
-        ::-webkit-scrollbar-track {
-            background: #F3F4F6;
+        .tab-button.active {
+            border-bottom: 3px solid #10B981; /* Emerald 500 */
+            color: #10B981;
+            font-weight: 600;
         }
-        .tab-content {
-            min-height: 400px;
+        .table-header th {
+            padding: 0.75rem 1.5rem;
+            text-align: left;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #4B5563; /* Gray 600 */
+            background-color: #F9FAFB;
         }
     </style>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'primary-green': '#10B981',
-                        'secondary-gray': '#4B5563',
-                        'light-gray': '#F9FAFB',
-                    }
-                },
-                fontFamily: {
-                    sans: ['Inter', 'sans-serif'],
-                }
-            }
-        }
-    </script>
 </head>
-<body class="bg-light-gray font-sans min-h-screen">
-    <div id="app" class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-        <header class="bg-white shadow-lg rounded-xl p-4 mb-6 flex flex-col sm:flex-row justify-between items-center">
-            <h1 class="text-3xl font-extrabold text-primary-green tracking-tight mb-3 sm:mb-0">
-                <i class="fas fa-car mr-2"></i> Driving School Manager
-            </h1>
-            <div class="flex items-center space-x-4">
-                <div id="syncStatus" class="flex items-center text-sm font-medium text-secondary-gray">
-                    <i class="fas fa-sync-alt mr-2 animate-spin text-yellow-500"></i>
-                    <span>Syncing...</span>
-                </div>
-                 <button onclick="toggleCredentials()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-3 rounded-lg text-sm transition duration-150 shadow-md">
-                    <i class="fas fa-cog mr-1"></i> Configuration
+<body class="p-4 sm:p-8 min-h-screen">
+    <!-- Main Header -->
+    <div class="max-w-6xl mx-auto flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold text-gray-800">DriveRight Management</h1>
+        <button class="flex items-center space-x-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-150" onclick="openModal('settingsModal')">
+            <!-- Icon for Configuration (Lucide React gear equivalent using SVG) -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings">
+                <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.78 1.48a2 2 0 0 0 .73 2.73l.15.08a2 2 0 0 1 1 1.73v.44a2 2 0 0 1-1 1.73l-.15.08a2 2 0 0 0-.73 2.73l.78 1.48a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 1-1.73v.18a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.78-1.48a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.73v-.44a2 2 0 0 1 1-1.73l.15-.08a2 2 0 0 0 .73-2.73l-.78-1.48a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>
+            </svg>
+            <span>Configuration</span>
+        </button>
+    </div>
+    
+    <!-- Status Message Area -->
+    <div id="status-message" class="fixed top-0 left-0 right-0 p-4 z-50 transition-all duration-300 transform -translate-y-full"></div>
+
+    <!-- Main Container -->
+    <div class="max-w-6xl mx-auto bg-white rounded-xl container-card overflow-hidden">
+        
+        <!-- Tab Navigation -->
+        <div class="flex border-b border-gray-200">
+            <button id="tab-students" class="tab-button active flex-1 py-3 px-4 text-center text-gray-500 hover:bg-gray-50 transition duration-150" onclick="changeTab('students')">Students</button>
+            <button id="tab-payments" class="tab-button flex-1 py-3 px-4 text-center text-gray-500 hover:bg-gray-50 transition duration-150" onclick="changeTab('payments')">Payments</button>
+        </div>
+
+        <!-- Students Tab Content -->
+        <div id="content-students" class="p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold text-gray-800">Student List</h2>
+                <button class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-150" onclick="openModal('addStudentModal')">
+                    + Add New Student
                 </button>
             </div>
-        </header>
-
-        <!-- Credentials Input Section -->
-        <div id="credentials" class="bg-white p-6 shadow-lg rounded-xl mb-6 border border-red-300">
-            <h2 class="text-xl font-semibold text-secondary-gray mb-4">Credentials & Setup <i class="fas fa-tools ml-2 text-blue-500"></i></h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label for="webAppUrl" class="block text-sm font-medium text-gray-700">Web App URL (For Writing)</label>
-                    <input type="text" id="webAppUrl" placeholder="Enter your Google Apps Script Web App URL here" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-green focus:ring-primary-green p-2 border">
-                    <p class="mt-1 text-xs text-gray-500">This URL is used to send payment data to Google Sheets.</p>
-                </div>
-                <div>
-                    <label for="sheetUrl" class="block text-sm font-medium text-gray-700">Google Sheet URL (For Reading)</label>
-                    <input type="text" id="sheetUrl" placeholder="Enter your main Google Sheet URL here" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-green focus:ring-primary-green p-2 border">
-                    <p class="mt-1 text-xs text-gray-500">The Student data will be fetched from this sheet.</p>
-                </div>
+            
+            <div class="mb-4">
+                <input type="text" id="student-search" oninput="filterStudents()" placeholder="Search by name or ID..." class="w-full p-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500">
             </div>
-            <button onclick="saveCredentialsAndReload()" class="mt-4 w-full bg-primary-green hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition duration-150 shadow-md">
-                <i class="fas fa-link mr-2"></i> Save & Connect
-            </button>
+
+            <!-- Student Table -->
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="table-header">
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Phone</th>
+                            <th>Course</th>
+                            <th>Fee</th>
+                            <th>Balance</th>
+                        </tr>
+                    </thead>
+                    <tbody id="student-list-body" class="bg-white divide-y divide-gray-200">
+                        <!-- Initial loading state -->
+                        <tr><td colspan="6" class="text-center py-4 text-gray-500">Loading students...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
-        <!-- Main Content Tabs -->
-        <div id="mainContent" class="hidden">
-            <div class="bg-white shadow-lg rounded-xl">
-                <!-- Tab Headers -->
-                <div class="flex border-b border-gray-200">
-                    <button id="studentsTab" onclick="changeTab('students')" class="py-3 px-6 text-sm font-medium transition-colors duration-200 focus:outline-none rounded-tl-xl border-b-2 border-primary-green text-primary-green">
-                        <i class="fas fa-users mr-2"></i> Students
-                    </button>
-                    <button id="paymentsTab" onclick="changeTab('payments')" class="py-3 px-6 text-sm font-medium transition-colors duration-200 focus:outline-none text-secondary-gray hover:text-primary-green">
-                        <i class="fas fa-dollar-sign mr-2"></i> Payments
-                    </button>
-                    <button id="recordTab" onclick="changeTab('record')" class="py-3 px-6 text-sm font-medium transition-colors duration-200 focus:outline-none text-secondary-gray hover:text-primary-green">
-                        <i class="fas fa-receipt mr-2"></i> Record Payment
-                    </button>
-                </div>
-
-                <!-- Tab Contents -->
-                <div class="p-6 tab-content overflow-auto">
-                    <!-- Students Tab Content -->
-                    <div id="studentsContent" class="tab-pane">
-                        <h2 class="text-2xl font-semibold text-secondary-gray mb-4">Current Students</h2>
-                        <div class="mb-4 flex flex-col sm:flex-row gap-3">
-                             <input type="text" id="studentSearch" placeholder="Search by name or ID..." class="flex-grow rounded-lg border-gray-300 shadow-sm focus:border-primary-green focus:ring-primary-green p-2 border">
-                             <button onclick="changeTab('addStudent')" class="bg-primary-green hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition duration-150 shadow-md">
-                                <i class="fas fa-plus mr-2"></i> Add New Student
-                            </button>
-                        </div>
-
-                        <table class="min-w-full divide-y divide-gray-200 shadow-md rounded-lg overflow-hidden">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Course</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fee</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Balance</th>
-                                </tr>
-                            </thead>
-                            <tbody id="studentList" class="bg-white divide-y divide-gray-200">
-                                <!-- Student rows will be injected here -->
-                            </tbody>
-                        </table>
-                        <div id="studentStatus" class="mt-4 text-center text-secondary-gray">Loading student data...</div>
-                    </div>
-
-                    <!-- Payments Tab Content -->
-                    <div id="paymentsContent" class="tab-pane hidden">
-                        <h2 class="text-2xl font-semibold text-secondary-gray mb-4">Payment History</h2>
-                        <input type="text" id="paymentSearch" placeholder="Search by Student ID or Name..." class="w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-green focus:ring-primary-green p-2 border mb-4">
-                        <table class="min-w-full divide-y divide-gray-200 shadow-md rounded-lg overflow-hidden">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment ID</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student Name</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Method</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="paymentList" class="bg-white divide-y divide-gray-200">
-                                <!-- Payment rows will be injected here -->
-                            </tbody>
-                        </table>
-                         <div id="paymentStatus" class="mt-4 text-center text-secondary-gray">Loading payment data...</div>
-                    </div>
-
-                    <!-- Record Payment Tab Content -->
-                    <div id="recordContent" class="tab-pane hidden max-w-lg mx-auto bg-gray-50 p-6 rounded-xl shadow-inner">
-                        <h2 class="text-2xl font-semibold text-secondary-gray mb-6 text-center">Record New Payment</h2>
-
-                        <div class="mb-4">
-                            <label for="recordStudentId" class="block text-sm font-medium text-gray-700">Student ID or Name</label>
-                            <select id="recordStudentId" onchange="updateRecordStudentDetails()" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-green focus:ring-primary-green p-2 border" required>
-                                <option value="">Select a Student...</option>
-                                <!-- Options populated by JavaScript -->
-                            </select>
-                            <p id="recordStudentDetails" class="mt-2 text-sm text-gray-500 italic"></p>
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="recordAmount" class="block text-sm font-medium text-gray-700">Amount Paid (RM)</label>
-                            <input type="number" id="recordAmount" placeholder="e.g., 500.00" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-green focus:ring-primary-green p-2 border" step="0.01" required>
-                        </div>
-
-                        <div class="mb-6">
-                            <label for="recordMethod" class="block text-sm font-medium text-gray-700">Payment Method</label>
-                            <select id="recordMethod" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-green focus:ring-primary-green p-2 border" required>
-                                <option value="Cash">Cash</option>
-                                <option value="Bank Transfer">Bank Transfer</option>
-                                <option value="Credit Card">Credit Card</option>
-                            </select>
-                        </div>
-
-                        <button onclick="recordPayment()" class="w-full bg-primary-green hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg transition duration-150 shadow-md flex items-center justify-center">
-                            <i class="fas fa-check-circle mr-2"></i> Record New Payment & Generate Receipt
-                        </button>
-                        <div id="recordStatus" class="mt-4 text-center font-semibold"></div>
-                    </div>
-
-                    <!-- Add Student Tab Content -->
-                     <div id="addStudentContent" class="tab-pane hidden max-w-lg mx-auto bg-gray-50 p-6 rounded-xl shadow-inner">
-                        <h2 class="text-2xl font-semibold text-secondary-gray mb-6 text-center">Add New Student</h2>
-
-                        <div class="mb-4">
-                            <label for="addStudentName" class="block text-sm font-medium text-gray-700">Full Name</label>
-                            <input type="text" id="addStudentName" placeholder="e.g., John Doe" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-green focus:ring-primary-green p-2 border" required>
-                        </div>
-                        <div class="mb-4">
-                            <label for="addStudentPhone" class="block text-sm font-medium text-gray-700">Phone Number</label>
-                            <input type="tel" id="addStudentPhone" placeholder="e.g., 0123456789" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-green focus:ring-primary-green p-2 border" required>
-                        </div>
-                        <div class="mb-4">
-                            <label for="addStudentCourse" class="block text-sm font-medium text-gray-700">Course Type</label>
-                            <input type="text" id="addStudentCourse" placeholder="e.g., Full License Package" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-green focus:ring-primary-green p-2 border" required>
-                        </div>
-                        <div class="mb-6">
-                            <label for="addStudentFee" class="block text-sm font-medium text-gray-700">Total Course Fee (RM)</label>
-                            <input type="number" id="addStudentFee" placeholder="e.g., 2500.00" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-green focus:ring-primary-green p-2 border" step="0.01" required>
-                        </div>
-
-                        <button onclick="addStudent()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-150 shadow-md flex items-center justify-center">
-                            <i class="fas fa-user-plus mr-2"></i> Save New Student
-                        </button>
-                        <div id="addStudentStatus" class="mt-4 text-center font-semibold"></div>
-                    </div>
-                </div>
+        <!-- Payments Tab Content -->
+        <div id="content-payments" class="p-6 hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold text-gray-800">Payment History</h2>
+                <button class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-150" onclick="openModal('addPaymentModal')">
+                    + Record New Payment
+                </button>
+            </div>
+            
+            <div class="mb-4">
+                <input type="text" id="payment-search" oninput="filterPayments()" placeholder="Search by Student ID or Name..." class="w-full p-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500">
+            </div>
+            
+            <!-- Payment Table -->
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="table-header">
+                        <tr>
+                            <th>Payment ID</th>
+                            <th>Student Name</th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Method</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="payment-list-body" class="bg-white divide-y divide-gray-200">
+                        <!-- Initial loading state -->
+                        <tr><td colspan="6" class="text-center py-4 text-gray-500">Loading payments...</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
-    <!-- Global Modal/Message Box (Replaces alert/confirm) -->
-    <div id="globalModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm transform transition-all">
-            <h3 id="modalTitle" class="text-xl font-bold mb-4 text-secondary-gray">Alert</h3>
-            <p id="modalMessage" class="text-gray-700 mb-6"></p>
-            <div class="flex justify-end space-x-3">
-                <button onclick="closeModal()" class="px-4 py-2 bg-primary-green hover:bg-green-600 text-white rounded-lg font-medium transition duration-150">Close</button>
+    <!-- Modals -->
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50 items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6">
+            <h3 class="text-xl font-bold mb-4 text-gray-800 flex items-center space-x-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-wrench"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-2.45 2.45a1 1 0 0 0-1.4 0L12 21.3a1 1 0 0 1-1.4 0l-.7-.7a1 1 0 0 1 0-1.4l1.6-1.6a1 1 0 0 0 0-1.4l-3.77-3.77a6 6 0 0 1-7.94-7.94l2.45-2.45a1 1 0 0 0 0-1.4L10 2.7a1 1 0 0 1 1.4 0l.7.7a1 1 0 0 1 0 1.4l-1.6 1.6z"/></svg>
+                <span>Credentials & Setup</span>
+            </h3>
+            <form id="settings-form">
+                <div class="mb-4">
+                    <label for="webAppUrl" class="block text-sm font-semibold text-gray-700">Web App URL (For Writing)</label>
+                    <input type="url" id="webAppUrl" name="webAppUrl" required 
+                           placeholder="https://script.google.com/macros/s/..."
+                           class="mt-1 p-2 w-full border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500">
+                    <p class="text-xs text-gray-500 mt-1">This URL is used to send payment data to Google Sheets.</p>
+                </div>
+                <div class="mb-6">
+                    <label for="sheetUrl" class="block text-sm font-semibold text-gray-700">Google Sheet URL (For Reading)</label>
+                    <input type="url" id="sheetUrl" name="sheetUrl" required 
+                           placeholder="https://docs.google.com/spreadsheets/d/..."
+                           class="mt-1 p-2 w-full border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500">
+                    <p class="text-xs text-gray-500 mt-1">The Student data will be fetched from this sheet.</p>
+                </div>
+                <div class="flex justify-end">
+                    <button type="submit" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-150 flex items-center space-x-2" id="save-settings-submit">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-save"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                        <span>Save & Connect</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Add Student Modal (Kept the same) -->
+    <div id="addStudentModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50 items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6">
+            <h3 class="text-xl font-bold mb-4">Add New Student</h3>
+            <form id="add-student-form">
+                <div class="mb-4">
+                    <label for="fullName" class="block text-sm font-medium text-gray-700">Full Name</label>
+                    <input type="text" id="fullName" name="fullName" required class="mt-1 p-2 w-full border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500">
+                </div>
+                <div class="mb-4">
+                    <label for="phoneNumber" class="block text-sm font-medium text-gray-700">Phone Number</label>
+                    <input type="text" id="phoneNumber" name="phoneNumber" required class="mt-1 p-2 w-full border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500">
+                </div>
+                <div class="mb-4">
+                    <label for="courseType" class="block text-sm font-medium text-gray-700">Course Type</label>
+                    <select id="courseType" name="courseType" required class="mt-1 p-2 w-full border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500">
+                        <option value="Standard">Standard Course</option>
+                        <option value="Premium">Premium Course</option>
+                    </select>
+                </div>
+                <div class="mb-6">
+                    <label for="totalFee" class="block text-sm font-medium text-gray-700">Total Course Fee (RM)</label>
+                    <input type="number" step="0.01" id="totalFee" name="totalFee" required class="mt-1 p-2 w-full border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500">
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-lg transition duration-150" onclick="closeModal('addStudentModal')">Cancel</button>
+                    <button type="submit" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-150" id="add-student-submit">Add Student</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Payment Modal (Kept the same) -->
+    <div id="addPaymentModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50 items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6">
+            <h3 class="text-xl font-bold mb-4">Record New Payment</h3>
+            <form id="add-payment-form">
+                <div class="mb-4">
+                    <label for="studentIdOrName" class="block text-sm font-medium text-gray-700">Student ID or Name</label>
+                    <select id="studentIdOrName" name="studentId" required class="mt-1 p-2 w-full border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500">
+                        <option value="" disabled selected>Select a Student...</option>
+                        <!-- Options filled by JavaScript -->
+                    </select>
+                    <p id="payment-balance-info" class="text-sm text-gray-500 mt-2 hidden"></p>
+                </div>
+                <div class="mb-4">
+                    <label for="paymentDate" class="block text-sm font-medium text-gray-700">Date of Payment</label>
+                    <input type="date" id="paymentDate" name="date" required class="mt-1 p-2 w-full border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500">
+                </div>
+                <div class="mb-4">
+                    <label for="paymentAmount" class="block text-sm font-medium text-gray-700">Amount Paid (RM)</label>
+                    <input type="number" step="0.01" id="paymentAmount" name="amount" required class="mt-1 p-2 w-full border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500">
+                </div>
+                <div class="mb-6">
+                    <label for="paymentMethod" class="block text-sm font-medium text-gray-700">Payment Method</label>
+                    <select id="paymentMethod" name="method" required class="mt-1 p-2 w-full border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500">
+                        <option value="Cash">Cash</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                        <option value="Credit Card">Credit Card</option>
+                    </select>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-lg transition duration-150" onclick="closeModal('addPaymentModal')">Cancel</button>
+                    <button type="submit" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-150" id="add-payment-submit">Record New Payment & Generate Receipt</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Receipt Modal (Kept the same) -->
+    <div id="receiptModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50 items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl h-5/6 flex flex-col p-6">
+            <h3 class="text-xl font-bold mb-4 text-gray-800">Payment Receipt</h3>
+            <div class="flex-grow border border-gray-300 rounded-lg overflow-hidden mb-4">
+                <iframe id="receipt-iframe" class="w-full h-full" frameborder="0"></iframe>
+            </div>
+            <div class="flex justify-end">
+                <button type="button" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-150" onclick="closeModal('receiptModal')">Close</button>
             </div>
         </div>
     </div>
+
 
     <script>
-        // --- CONSTANTS AND STATE ---
-        let APPS_SCRIPT_URL = ''; // This will be set by the credential input
-        let SHEET_URL = '';       // This will be set by the credential input
-        let SPREADSHEET_ID = '';
+        // Use a mutable variable instead of const so it can be updated by the settings form.
+        let WEB_APP_URL = '';
+        let SHEET_URL = '';
+        const WEB_APP_STORAGE_KEY = 'driving_school_web_app_url';
+        const SHEET_STORAGE_KEY = 'driving_school_sheet_url';
 
         let allStudents = [];
         let allPayments = [];
         let currentTab = 'students';
-        let isSyncing = true;
 
-        // --- CREDENTIALS HANDLING ---
+        // --- Configuration & Initialization Functions ---
 
-        function toggleCredentials() {
-            const credentialsDiv = document.getElementById('credentials');
-            const mainContentDiv = document.getElementById('mainContent');
-            
-            // Toggle visibility of the credentials section
-            const isHidden = credentialsDiv.classList.toggle('hidden');
-            
-            // If we are showing credentials, hide main content
-            if (!isHidden) {
-                mainContentDiv.classList.add('hidden');
-            } else if (APPS_SCRIPT_URL && SHEET_URL) {
-                // If we are hiding credentials AND we have URLs, show main content
-                mainContentDiv.classList.remove('hidden');
+        function loadConfig() {
+            WEB_APP_URL = localStorage.getItem(WEB_APP_STORAGE_KEY) || '';
+            SHEET_URL = localStorage.getItem(SHEET_STORAGE_KEY) || '';
+
+            // Check if both URLs are configured.
+            if (!WEB_APP_URL || !SHEET_URL) {
+                showStatus("CRITICAL ERROR: Please set both Web App and Sheet URLs in Configuration.", 'error');
+                // Set default display state if config is missing
+                document.getElementById('student-list-body').innerHTML = '<tr><td colspan="6" class="text-center py-4 text-red-500">Please configure the URLs in Settings to load data.</td></tr>';
+            } else {
+                 // Clear the status message if valid URLs are loaded
+                 document.getElementById('status-message').classList.add('-translate-y-full');
+                 // Attempt to load data if configuration is present
+                 fetchStudents();
             }
         }
         
-        function saveCredentialsAndReload() {
+        function saveConfig(webAppUrl, sheetUrl) {
+            localStorage.setItem(WEB_APP_STORAGE_KEY, webAppUrl);
+            localStorage.setItem(SHEET_STORAGE_KEY, sheetUrl);
+            WEB_APP_URL = webAppUrl;
+            SHEET_URL = sheetUrl;
+            showStatus("Configuration saved successfully! Loading data...", 'success');
+        }
+
+        document.getElementById('settings-form').addEventListener('submit', function(e) {
+            e.preventDefault();
             const webAppUrl = document.getElementById('webAppUrl').value.trim();
             const sheetUrl = document.getElementById('sheetUrl').value.trim();
 
             if (webAppUrl && sheetUrl) {
-                localStorage.setItem('APPS_SCRIPT_URL', webAppUrl);
-                localStorage.setItem('SHEET_URL', sheetUrl);
-                // Extract Spreadsheet ID from URL
-                const match = sheetUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
-                if (match && match[1]) {
-                    localStorage.setItem('SPREADSHEET_ID', match[1]);
-                } else {
-                     showModal('Error', 'Invalid Google Sheet URL format. Please ensure it is a standard URL containing the /d/{ID}/ part.');
-                     return;
-                }
-                showModal('Success', 'Credentials saved! Reloading application...');
-                setTimeout(() => window.location.reload(), 1000);
+                saveConfig(webAppUrl, sheetUrl);
+                closeModal('settingsModal');
+                // Reload data after saving new configuration
+                fetchStudents();
             } else {
-                showModal('Error', 'Please enter both the Web App URL and the Google Sheet URL.');
+                showStatus("Please enter both valid URLs.", 'error');
+            }
+        });
+
+        // --- Utility Functions ---
+
+        function showStatus(message, type = 'success') {
+            const statusEl = document.getElementById('status-message');
+            statusEl.textContent = message;
+
+            // Remove existing colors and add new one
+            statusEl.classList.remove('bg-red-500', 'bg-green-500', 'bg-blue-500', 'text-white');
+            
+            if (type === 'success') {
+                statusEl.classList.add('bg-green-500', 'text-white');
+            } else if (type === 'error') {
+                statusEl.classList.add('bg-red-500', 'text-white');
+            } else {
+                statusEl.classList.add('bg-blue-500', 'text-white');
+            }
+
+            // Show and then hide
+            statusEl.classList.remove('-translate-y-full');
+            statusEl.classList.add('translate-y-0');
+
+            setTimeout(() => {
+                statusEl.classList.remove('translate-y-0');
+                statusEl.classList.add('-translate-y-full');
+            }, 5000);
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+            document.getElementById(id).classList.add('flex');
+            
+            if (id === 'addPaymentModal') {
+                populateStudentSelect();
+            } else if (id === 'settingsModal') {
+                document.getElementById('webAppUrl').value = WEB_APP_URL;
+                document.getElementById('sheetUrl').value = SHEET_URL;
             }
         }
 
-        function loadCredentials() {
-            APPS_SCRIPT_URL = localStorage.getItem('APPS_SCRIPT_URL') || '';
-            SHEET_URL = localStorage.getItem('SHEET_URL') || '';
-            SPREADSHEET_ID = localStorage.getItem('SPREADSHEET_ID') || '';
-
-            document.getElementById('webAppUrl').value = APPS_SCRIPT_URL;
-            document.getElementById('sheetUrl').value = SHEET_URL;
-
-            if (APPS_SCRIPT_URL && SHEET_URL) {
-                // If credentials exist, hide the input section and show the app
-                document.getElementById('credentials').classList.add('hidden');
-                document.getElementById('mainContent').classList.remove('hidden');
-                fetchData();
-            } else {
-                // If no credentials, show the input section and hide the app
-                document.getElementById('credentials').classList.remove('hidden');
-                document.getElementById('mainContent').classList.add('hidden');
-                updateSyncStatus('Ready to configure.', 'text-blue-500');
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+            document.getElementById(id).classList.remove('flex');
+            if (id === 'addStudentModal') {
+                document.getElementById('add-student-form').reset();
+            }
+            if (id === 'addPaymentModal') {
+                document.getElementById('add-payment-form').reset();
+                document.getElementById('payment-balance-info').classList.add('hidden');
+            }
+            if (id === 'receiptModal') {
+                document.getElementById('receipt-iframe').src = '';
             }
         }
 
-        // --- DATA FETCHING AND PROCESSING ---
+        function changeTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`tab-${tab}`).classList.add('active');
+            
+            document.getElementById('content-students').classList.add('hidden');
+            document.getElementById('content-payments').classList.add('hidden');
+            document.getElementById(`content-${tab}`).classList.remove('hidden');
 
-        async function fetchData() {
-            if (!SPREADSHEET_ID) {
-                updateSyncStatus('Configuration missing.', 'text-red-500');
-                return;
+            // Refresh data when switching tabs
+            if (tab === 'payments') {
+                fetchPayments();
+            } else {
+                fetchStudents();
             }
+        }
 
-            updateSyncStatus('Fetching data...', 'text-yellow-500', true);
+
+        // --- Data Fetching ---
+
+        async function postData(data) {
+            if (!WEB_APP_URL || !SHEET_URL) {
+                showStatus("CONNECTION ERROR: Web App or Sheet URL is missing. Please go to Configuration.", 'error');
+                return { success: false, message: 'Apps Script URL not configured.' };
+            }
+            
+            // Add the Sheet URL to the payload for Apps Script to know which sheet to use
+            data.sheetUrl = SHEET_URL;
 
             try {
-                // Fetch student data
-                const studentsResponse = await fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=Students`);
-                const studentsText = await studentsResponse.text();
-                allStudents = parseData(studentsText);
-
-                // Fetch payment data
-                const paymentsResponse = await fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=Payments`);
-                const paymentsText = await paymentsResponse.text();
-                allPayments = parseData(paymentsText);
-                
-                // Remove old, broken records
-                allStudents = allStudents.filter(s => s.ID && s.ID.startsWith('S'));
-                allPayments = allPayments.filter(p => p.PAYMENT_ID && p.PAYMENT_ID.startsWith('P'));
-
-                // Enrich students with balance and total paid
-                const studentPayments = allPayments.reduce((acc, p) => {
-                    if (!acc[p.STUDENT_ID]) acc[p.STUDENT_ID] = 0;
-                    // Use parseFloat here as amount might come as a string/number from the sheet
-                    acc[p.STUDENT_ID] += parseFloat(p.AMOUNT) || 0; 
-                    return acc;
-                }, {});
-
-                allStudents = allStudents.map(student => {
-                    const totalPaid = studentPayments[student.ID] || 0;
-                    const totalFee = parseFloat(student.TOTAL_FEE) || 0;
-                    student.TOTAL_PAID = totalPaid;
-                    student.BALANCE = totalFee - totalPaid;
-                    return student;
+                const response = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data),
                 });
-
-                renderStudents(allStudents);
-                renderPayments(allPayments);
-                populateRecordPaymentSelect(allStudents);
-
-                updateSyncStatus('Sync Complete!', 'text-primary-green', false);
+                
+                // Apps Script often returns text/plain, so we attempt to parse text
+                const text = await response.text();
+                
+                // Check if the response text is empty or starts with an error HTML page
+                if (!text || !response.ok) {
+                     throw new Error(`Server error or empty response. Status: ${response.status}`);
+                }
+                
+                return JSON.parse(text);
 
             } catch (error) {
-                console.error("Error fetching or parsing data:", error);
-                updateSyncStatus('Error fetching data. Check Sheet URL and Sharing settings.', 'text-red-500', false);
+                console.error('Error in postData:', error);
+                showStatus(`Error connecting to Apps Script: ${error.message}. Check URLs and Script Logs.`, 'error');
+                throw error; 
             }
         }
+        
+        function updateStudentTable(message) {
+             const tableBody = document.getElementById('student-list-body');
+             tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-gray-500">${message}</td></tr>`;
+        }
 
-        // Standard Google Visualization API response parsing
-        function parseData(text) {
+        async function fetchStudents() {
+            updateStudentTable('Loading students...');
             try {
-                const jsonText = text.substring(text.indexOf('(') + 1, text.lastIndexOf(')'));
-                const data = JSON.parse(jsonText);
-                
-                // Helper to sanitize column names for consistency
-                const sanitizeColName = (name) => name.toUpperCase().replace(/\s+/g, '_').trim();
-
-                const columns = data.table.cols.map(col => sanitizeColName(col.label));
-                const rows = data.table.rows;
-
-                return rows.map(row => {
-                    const item = {};
-                    row.c.forEach((cell, i) => {
-                        const colName = columns[i]; // Use sanitized name
-                        
-                        if (cell === null || cell.v === null) {
-                            item[colName] = '';
-                            return;
-                        }
-                        
-                        // Prioritize formatted value (f) for dates and display values
-                        if (cell.f) {
-                            item[colName] = cell.f.trim();
-                        } else if (typeof cell.v === 'string') {
-                            item[colName] = cell.v.trim();
-                        } else if (typeof cell.v === 'number') {
-                            item[colName] = cell.v;
-                        } else if (typeof cell.v === 'object' && cell.v !== null) {
-                            // Handle potential date objects which come as arrays/objects
-                            if (colName.includes('DATE') && Array.isArray(cell.v)) {
-                                item[colName] = new Date(cell.v[0], cell.v[1], cell.v[2]).toLocaleDateString();
-                            } else {
-                                item[colName] = cell.v;
-                            }
-                        } else {
-                             item[colName] = '';
-                        }
-                    });
-                    return item;
-                });
-            } catch (e) {
-                console.error("Failed to parse data:", e, text);
-                return [];
+                const response = await postData({ action: 'fetch_students' });
+                if (response.success) {
+                    allStudents = response.students || [];
+                    // Fetch payments next to calculate balances
+                    await fetchPayments(true); 
+                    renderStudentList(allStudents);
+                    showStatus("Student data synchronized.", 'success');
+                } else {
+                    showStatus(response.message, 'error');
+                    updateStudentTable(`Error fetching data: ${response.message}`);
+                }
+            } catch (error) {
+                 if (WEB_APP_URL && SHEET_URL) {
+                    updateStudentTable('Could not connect to server. Check script logs and sharing settings.');
+                 }
             }
         }
-
-        // --- RENDERING FUNCTIONS ---
-
-        function renderStudents(students) {
-            const container = document.getElementById('studentList');
-            if (!container) return;
-
-            if (students.length === 0) {
-                document.getElementById('studentStatus').textContent = 'No students found. Use "Add New Student" to begin.';
-                container.innerHTML = '';
-                return;
-            }
-
-            document.getElementById('studentStatus').textContent = '';
-            container.innerHTML = students.map(s => {
-                const totalFee = parseFloat(s.TOTAL_FEE) || 0;
-                const balance = s.BALANCE || 0;
-                const balanceColor = balance > 0 ? 'text-red-500' : 'text-primary-green';
-                const balanceText = balance <= 0 ? 'Paid' : `RM ${balance.toFixed(2)}`;
-                
-                return `
-                    <tr class="hover:bg-gray-50 transition-colors duration-150">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${s.ID || 'N/A'}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${s.NAME || 'N/A'}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${s.PHONE_NUMBER || 'N/A'}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${s.COURSE_TYPE || 'N/A'}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">RM ${totalFee.toFixed(2)}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold ${balanceColor}">${balanceText}</td>
-                    </tr>
-                `;
-            }).join('');
+        
+        function updatePaymentTable(message) {
+             const tableBody = document.getElementById('payment-list-body');
+             tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-gray-500">${message}</td></tr>`;
         }
 
-        function renderPayments(payments) {
-            const container = document.getElementById('paymentList');
-            if (!container) return;
-
-             if (payments.length === 0) {
-                document.getElementById('paymentStatus').textContent = 'No payments found.';
-                container.innerHTML = '';
-                return;
-            }
-
-            document.getElementById('paymentStatus').textContent = '';
-            container.innerHTML = payments.map(p => {
-                // Find student by ID (using the normalized column name 'STUDENT_ID')
-                const student = allStudents.find(s => s.ID === p.STUDENT_ID) || {NAME: 'Unknown Student'};
-                
-                const receiptUrl = p.RECEIPT_URL || '';
-                const receiptButton = receiptUrl.startsWith('http')
-                    ? `<button onclick="window.open('${receiptUrl}', '_blank')" class="bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold py-1 px-3 rounded-lg shadow-sm transition duration-150"><i class="fas fa-eye mr-1"></i> View Receipt</button>`
-                    : `<span class="text-xs text-red-500">No Receipt Generated</span>`;
-
-                return `
-                    <tr class="hover:bg-gray-50 transition-colors duration-150">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${p.PAYMENT_ID || 'N/A'}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${student.NAME}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${p.DATE || 'N/A'}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-primary-green font-semibold">RM ${parseFloat(p.AMOUNT).toFixed(2) || '0.00'}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${p.PAYMENT_METHOD || 'N/A'}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm">
-                            ${receiptButton}
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        // --- TAB AND STATUS UTILITIES ---
-
-        function changeTab(tabName) {
-            currentTab = tabName;
-            const tabs = ['students', 'payments', 'record', 'addStudent'];
-
-            tabs.forEach(tab => {
-                const button = document.getElementById(`${tab}Tab`);
-                const content = document.getElementById(`${tab}Content`);
-
-                if (button) {
-                    // Only show tabs that have a corresponding button (i.e., hide 'addStudent' button)
-                    if (tab === tabName) {
-                        button.classList.add('border-primary-green', 'text-primary-green');
-                        button.classList.remove('border-transparent', 'text-secondary-gray', 'hover:text-primary-green');
-                    } else {
-                        button.classList.remove('border-primary-green', 'text-primary-green');
-                        button.classList.add('border-transparent', 'text-secondary-gray', 'hover:text-primary-green');
+        async function fetchPayments(silent = false) {
+            if (!silent) updatePaymentTable('Loading payments...');
+            try {
+                const response = await postData({ action: 'fetch_payments' });
+                if (response.success) {
+                    allPayments = response.payments || [];
+                    if (currentTab === 'payments' && !silent) {
+                        renderPaymentList(allPayments);
+                        showStatus("Payment data synchronized.", 'success');
+                    }
+                } else {
+                    if (!silent) {
+                        showStatus(`Error fetching payments: ${response.message}`, 'error');
+                        updatePaymentTable(`Error fetching data: ${response.message}`);
                     }
                 }
-                if (content) {
-                    content.classList.toggle('hidden', tab !== tabName);
-                }
-            });
-            // Special handling for Add Student: ensure it is shown when explicitly selected
-            if (tabName === 'addStudent') {
-                document.getElementById('addStudentContent').classList.remove('hidden');
-                document.getElementById('studentsContent').classList.add('hidden');
+                
+            } catch (error) {
+                if (!silent) updatePaymentTable('Could not connect to server.');
+                allPayments = []; 
             }
         }
 
-        function updateSyncStatus(message, colorClass, isSpinning = false) {
-            const statusDiv = document.getElementById('syncStatus');
-            const icon = statusDiv.querySelector('i');
-            const textSpan = statusDiv.querySelector('span');
 
-            statusDiv.className = `flex items-center text-sm font-medium ${colorClass}`;
-            // Use current text color for the spinner/icon color
-            const iconColor = colorClass.includes('red') ? 'text-red-500' : (colorClass.includes('yellow') ? 'text-yellow-500' : 'text-primary-green');
-            icon.className = `fas fa-sync-alt mr-2 ${isSpinning ? 'animate-spin' : ''} ${iconColor}`;
-            textSpan.textContent = message;
+        // --- Rendering ---
+        
+        function calculateBalance(studentId, totalFee) {
+            const paymentsForStudent = allPayments.filter(p => String(p.studentId) === String(studentId));
+            const totalPaid = paymentsForStudent.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+            return (parseFloat(totalFee) || 0) - totalPaid;
         }
 
-        // --- RECORD PAYMENT TAB LOGIC ---
 
-        function populateRecordPaymentSelect(students) {
-            const select = document.getElementById('recordStudentId');
-            const selectedId = select.value;
-            select.innerHTML = '<option value="">Select a Student...</option>';
-            
-            // Filter to ensure only valid student IDs are shown
-            const validStudents = students.filter(s => s.ID && s.ID.startsWith('S')); 
+        function renderStudentList(students) {
+            const tableBody = document.getElementById('student-list-body');
+            tableBody.innerHTML = '';
 
-            validStudents.forEach(s => {
-                const option = document.createElement('option');
-                option.value = s.ID;
-                option.textContent = `${s.NAME || 'N/A'} (ID: ${s.ID})`;
-                if (s.ID === selectedId) {
-                    option.selected = true;
-                }
-                select.appendChild(option);
-            });
-            updateRecordStudentDetails();
-        }
-
-        function updateRecordStudentDetails() {
-            const studentId = document.getElementById('recordStudentId').value;
-            const detailsElement = document.getElementById('recordStudentDetails');
-            const amountInput = document.getElementById('recordAmount');
-
-            if (!studentId) {
-                detailsElement.textContent = 'Select a student to see course fee and balance.';
-                amountInput.value = '';
+            if (students.length === 0) {
+                updateStudentTable('No students found.');
                 return;
             }
 
-            const student = allStudents.find(s => s.ID === studentId);
-            if (student) {
-                const balance = student.BALANCE || 0;
-                const totalFee = parseFloat(student.TOTAL_FEE) || 0;
-                const totalPaid = student.TOTAL_PAID || 0;
+            students.forEach(student => {
+                // Ensure field names match the Apps Script output (fullName, not just name)
+                const studentName = student.fullName || 'N/A'; 
+                const totalFee = parseFloat(student.totalFee) || 0;
                 
-                const balanceColor = balance > 0 ? 'text-red-600' : 'text-primary-green';
+                const balance = calculateBalance(student.id, totalFee); 
+                const balanceDisplay = balance <= 0 ? `<span class="text-green-600 font-semibold">Paid</span>` : `<span class="text-red-600 font-semibold">RM ${balance.toFixed(2)}</span>`;
                 
-                detailsElement.innerHTML = `
-                    **Fee:** RM ${totalFee.toFixed(2)} |
-                    **Paid:** RM ${totalPaid.toFixed(2)} |
-                    <span class="${balanceColor} font-bold">Balance: RM ${balance.toFixed(2)}</span>
+                const row = `
+                    <tr class="hover:bg-gray-50 transition duration-150">
+                        <td class="p-4 whitespace-nowrap">${student.id || 'N/A'}</td>
+                        <td class="p-4 whitespace-nowrap">${studentName}</td>
+                        <td class="p-4 whitespace-nowrap">${student.phoneNumber || 'N/A'}</td>
+                        <td class="p-4 whitespace-nowrap">${student.courseType || 'N/A'}</td>
+                        <td class="p-4 whitespace-nowrap">RM ${totalFee.toFixed(2)}</td>
+                        <td class="p-4 whitespace-nowrap">${balanceDisplay}</td>
+                    </tr>
                 `;
-                // Suggest remaining balance as default payment amount
-                amountInput.value = balance > 0 ? balance.toFixed(2) : '0.00';
-            } else {
-                 detailsElement.textContent = 'Student data not found.';
+                tableBody.insertAdjacentHTML('beforeend', row);
+            });
+        }
+
+        function renderPaymentList(payments) {
+            const tableBody = document.getElementById('payment-list-body');
+            tableBody.innerHTML = '';
+
+            if (payments.length === 0) {
+                updatePaymentTable('No payments recorded.');
+                return;
+            }
+
+            payments.forEach(payment => {
+                const student = allStudents.find(s => String(s.id) === String(payment.studentId));
+                const studentName = student ? (student.fullName || 'Unknown Student') : 'Unknown Student';
+                const receiptUrl = payment.receiptUrl || '';
+                
+                const actionButton = receiptUrl && !receiptUrl.startsWith('Error') ? 
+                    `<button class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-1 px-3 rounded-lg text-sm transition duration-150" onclick="viewReceipt('${receiptUrl}')">View Receipt</button>` :
+                    `<span class="text-red-500 text-sm">${receiptUrl.startsWith('Error') ? 'Receipt Failed' : 'No Receipt Generated'}</span>`;
+
+                const amountDisplay = `RM ${(parseFloat(payment.amount) || 0).toFixed(2)}`;
+
+                const row = `
+                    <tr class="hover:bg-gray-50 transition duration-150">
+                        <td class="p-4 whitespace-nowrap">${payment.paymentId || 'N/A'}</td>
+                        <td class="p-4 whitespace-nowrap">${studentName}</td>
+                        <td class="p-4 whitespace-nowrap">${payment.date || 'N/A'}</td>
+                        <td class="p-4 whitespace-nowrap text-green-600 font-semibold">${amountDisplay}</td>
+                        <td class="p-4 whitespace-nowrap">${payment.method || 'N/A'}</td>
+                        <td class="p-4 whitespace-nowrap">${actionButton}</td>
+                    </tr>
+                `;
+                tableBody.insertAdjacentHTML('beforeend', row);
+            });
+        }
+        
+        function populateStudentSelect() {
+            const select = document.getElementById('studentIdOrName');
+            select.innerHTML = '<option value="" disabled selected>Select a Student...</option>';
+            const balanceInfo = document.getElementById('payment-balance-info');
+            balanceInfo.classList.add('hidden');
+            
+            allStudents.forEach(student => {
+                const studentName = student.fullName || 'Student Name Missing';
+                const optionText = `${studentName} (ID: ${student.id || 'N/A'})`;
+                const option = new Option(optionText, student.id);
+                option.setAttribute('data-total-fee', student.totalFee);
+                select.add(option);
+            });
+
+            // Add listener to update balance info
+            select.onchange = function() {
+                const selectedId = this.value;
+                const student = allStudents.find(s => String(s.id) === String(selectedId));
+                if (student) {
+                    const totalFee = parseFloat(student.totalFee) || 0;
+                    const balance = calculateBalance(student.id, totalFee);
+                    
+                    balanceInfo.textContent = `Total Fee: RM ${totalFee.toFixed(2)} | Current Balance Due: RM ${balance.toFixed(2)}`;
+                    balanceInfo.classList.remove('hidden');
+
+                    if (balance <= 0) {
+                        balanceInfo.classList.add('text-green-600');
+                        balanceInfo.classList.remove('text-red-600');
+                    } else {
+                        balanceInfo.classList.add('text-red-600');
+                        balanceInfo.classList.remove('text-green-600');
+                    }
+                }
             }
         }
 
-        // --- SUBMISSION FUNCTIONS ---
+        function viewReceipt(url) {
+            document.getElementById('receipt-iframe').src = url;
+            openModal('receiptModal');
+        }
 
-        async function postDataToAppsScript(data) {
-            if (!APPS_SCRIPT_URL) {
-                showModal('Error', 'Web App URL is not configured. Please save credentials.');
-                return { success: false, message: 'URL not configured' };
-            }
 
-            const statusElement = document.getElementById(data.action === 'add_student' ? 'addStudentStatus' : 'recordStatus');
-            statusElement.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Processing request...';
-            statusElement.classList.remove('text-red-500', 'text-primary-green');
-            statusElement.classList.add('text-blue-500');
+        // --- Form Submissions ---
+
+        document.getElementById('add-student-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('add-student-submit');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Adding...';
+
+            const formData = Object.fromEntries(new FormData(e.target).entries());
+            formData.action = 'add_student';
 
             try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors', 
-                    cache: 'no-cache',
-                    headers: {
-                        'Content-Type': 'application/json' 
-                    },
-                    body: JSON.stringify(data) 
-                });
-
-                // Since we use 'no-cors', we cannot read the response body directly.
-                // We assume success and force a data refresh to reflect changes from Apps Script.
-
-                // Wait a moment for Apps Script to finish writing data before fetching
-                await new Promise(resolve => setTimeout(resolve, 3000));
-
-                statusElement.textContent = 'Success! Updating data.';
-                statusElement.classList.remove('text-blue-500');
-                statusElement.classList.add('text-primary-green');
-
-                // Reload data to see the changes
-                await fetchData();
-
-                if (data.action === 'add_payment') {
-                    showModal('Payment Recorded', 'Payment has been successfully recorded. Check the Payments tab shortly for the receipt URL.');
-                    // Switch back to payments to view history
-                    changeTab('payments');
+                const response = await postData(formData);
+                if (response.success) {
+                    showStatus(response.message);
+                    closeModal('addStudentModal');
+                    await fetchStudents();
                 } else {
-                     showModal('Student Added', 'New student has been successfully added to the system. You should see them in the Students list now.');
-                     // Switch back to students
-                     changeTab('students');
+                    showStatus(response.message, 'error');
                 }
-
-                return { success: true };
-
             } catch (error) {
-                console.error("Fetch error:", error);
-                const errorMessage = `Error saving data via Apps Script: ${error.message}. Please check your Web App URL and Apps Script logs.`;
-                statusElement.textContent = errorMessage;
-                statusElement.classList.remove('text-blue-500', 'text-primary-green');
-                statusElement.classList.add('text-red-500');
-                showModal('Server Error', errorMessage);
-                return { success: false, message: error.message };
+                // Handled in postData
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Add Student';
             }
-        }
+        });
 
+        document.getElementById('add-payment-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('add-payment-submit');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Recording Payment...';
 
-        async function recordPayment() {
-            const studentId = document.getElementById('recordStudentId').value;
-            const amount = document.getElementById('recordAmount').value;
-            const method = document.getElementById('recordMethod').value;
-            const statusElement = document.getElementById('recordStatus');
+            const formData = Object.fromEntries(new FormData(e.target).entries());
+            formData.action = 'add_payment';
+            
+            // Convert date to YYYY-MM-DD format for Apps Script
+            const dateInput = document.getElementById('paymentDate').value;
+            formData.date = dateInput; 
 
-            if (!studentId || !amount || !method) {
-                showModal('Missing Fields', 'Please select a student, enter the amount, and choose a payment method.');
-                return;
+            try {
+                const response = await postData(formData);
+                if (response.success) {
+                    showStatus(response.message);
+                    closeModal('addPaymentModal');
+                    // Refresh both lists
+                    await fetchStudents(); 
+                    if (response.receiptUrl && !response.receiptUrl.startsWith('Error')) {
+                        viewReceipt(response.receiptUrl);
+                    }
+                } else {
+                    showStatus(response.message, 'error');
+                }
+            } catch (error) {
+                // Handled in postData
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Record New Payment & Generate Receipt';
             }
+        });
 
-            const amountFloat = parseFloat(amount);
-            if (isNaN(amountFloat) || amountFloat <= 0) {
-                 showModal('Invalid Amount', 'Please enter a valid amount greater than zero.');
-                return;
-            }
+        // --- Filtering/Search ---
 
-            const paymentData = {
-                action: 'add_payment',
-                studentId: studentId,
-                amount: amountFloat.toFixed(2),
-                method: method,
-                date: new Date().toLocaleDateString('en-US') // Send simple date string
-            };
-
-            await postDataToAppsScript(paymentData);
-            statusElement.innerHTML = '';
-            document.getElementById('recordAmount').value = '';
-        }
-
-        async function addStudent() {
-            const name = document.getElementById('addStudentName').value.trim();
-            const phone = document.getElementById('addStudentPhone').value.trim();
-            const course = document.getElementById('addStudentCourse').value.trim();
-            const fee = document.getElementById('addStudentFee').value;
-            const statusElement = document.getElementById('addStudentStatus');
-
-            if (!name || !phone || !course || !fee) {
-                showModal('Missing Fields', 'Please fill in all student details.');
-                return;
-            }
-
-            const studentData = {
-                action: 'add_student',
-                name: name,
-                phoneNumber: phone,
-                courseType: course,
-                totalFee: parseFloat(fee).toFixed(2),
-            };
-
-            await postDataToAppsScript(studentData);
-            statusElement.innerHTML = '';
-            // Clear inputs after successful submission
-            document.getElementById('addStudentName').value = '';
-            document.getElementById('addStudentPhone').value = '';
-            document.getElementById('addStudentCourse').value = '';
-            document.getElementById('addStudentFee').value = '';
-        }
-
-
-        // --- UTILITY: MODAL ---
-
-        function showModal(title, message) {
-            document.getElementById('modalTitle').textContent = title;
-            document.getElementById('modalMessage').textContent = message;
-            document.getElementById('globalModal').classList.remove('hidden');
-        }
-
-        function closeModal() {
-            document.getElementById('globalModal').classList.add('hidden');
-        }
-
-        // --- INITIALIZATION ---
-        window.onload = loadCredentials;
-
-        // --- SEARCH FUNCTIONALITY ---
-        document.getElementById('studentSearch').addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
-            const filteredStudents = allStudents.filter(s =>
-                s.NAME.toLowerCase().includes(query) ||
-                s.ID.toLowerCase().includes(query) ||
-                s.PHONE_NUMBER.includes(query)
+        function filterStudents() {
+            const query = document.getElementById('student-search').value.toLowerCase();
+            const filtered = allStudents.filter(student => 
+                String(student.id || '').toLowerCase().includes(query) || 
+                String(student.fullName || '').toLowerCase().includes(query)
             );
-            renderStudents(filteredStudents);
-        });
+            renderStudentList(filtered);
+        }
 
-        document.getElementById('paymentSearch').addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
-            const filteredPayments = allPayments.filter(p => {
-                const student = allStudents.find(s => s.ID === p.STUDENT_ID) || { NAME: '' };
-                return (
-                    p.STUDENT_ID.toLowerCase().includes(query) ||
-                    student.NAME.toLowerCase().includes(query)
-                );
+        function filterPayments() {
+            const query = document.getElementById('payment-search').value.toLowerCase();
+            
+            const filteredPayments = allPayments.filter(payment => {
+                const student = allStudents.find(s => String(s.id) === String(payment.studentId));
+                const studentName = student ? (student.fullName || 'Unknown Student') : 'Unknown Student';
+                
+                return String(payment.paymentId || '').toLowerCase().includes(query) ||
+                       String(payment.studentId || '').toLowerCase().includes(query) ||
+                       studentName.toLowerCase().includes(query);
             });
-            renderPayments(filteredPayments);
-        });
+            renderPaymentList(filteredPayments);
+        }
 
+        // --- Initialization ---
+
+        window.onload = function() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('paymentDate').value = today;
+
+            // 1. Load configuration (Apps Script URL and Sheet URL)
+            loadConfig();
+            
+            // Data loading is initiated inside loadConfig if URLs are present
+        }
     </script>
 </body>
 </html>
