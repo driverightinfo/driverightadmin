@@ -18,7 +18,7 @@
         }
         
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             background: white;
             padding: 30px;
@@ -36,6 +36,37 @@
             margin-bottom: 30px;
         }
         
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #ddd;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            font-size: 16px;
+            color: #666;
+        }
+        
+        .tab.active {
+            color: #4CAF50;
+            border-bottom-color: #4CAF50;
+            font-weight: bold;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
         .form-group {
             margin-bottom: 20px;
         }
@@ -47,7 +78,7 @@
             font-weight: bold;
         }
         
-        input, select {
+        input, select, textarea {
             width: 100%;
             padding: 10px;
             border: 1px solid #ddd;
@@ -55,7 +86,7 @@
             font-size: 14px;
         }
         
-        input:focus, select:focus {
+        input:focus, select:focus, textarea:focus {
             outline: none;
             border-color: #4CAF50;
         }
@@ -76,12 +107,25 @@
             background: #45a049;
         }
         
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
         .btn-secondary {
             background: #2196F3;
         }
         
         .btn-secondary:hover {
             background: #0b7dda;
+        }
+        
+        .btn-danger {
+            background: #f44336;
+        }
+        
+        .btn-danger:hover {
+            background: #da190b;
         }
         
         .error {
@@ -118,47 +162,170 @@
             font-weight: bold;
         }
         
-        #receipt {
+        .records-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .records-table th,
+        .records-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .records-table th {
+            background: #f5f5f5;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .records-table tr:hover {
+            background: #f9f9f9;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
+        /* Receipt Styles - Full Page */
+        .receipt-page {
             display: none;
-            margin-top: 30px;
-            padding: 30px;
-            border: 2px solid #333;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background: white;
+            z-index: 1000;
+            overflow: auto;
+        }
+        
+        .receipt-content {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            padding: 20mm;
+            background: white;
+            box-sizing: border-box;
         }
         
         .receipt-header {
             text-align: center;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #333;
-            padding-bottom: 10px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #333;
+        }
+        
+        .receipt-header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .receipt-header h2 {
+            font-size: 24px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        
+        .receipt-info {
+            margin: 30px 0;
         }
         
         .receipt-row {
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
+            padding: 12px 0;
+            font-size: 16px;
+        }
+        
+        .receipt-row strong {
+            min-width: 200px;
+        }
+        
+        .receipt-section {
+            margin: 40px 0;
+        }
+        
+        .receipt-section h3 {
+            background: #f5f5f5;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #4CAF50;
         }
         
         .receipt-total {
-            border-top: 2px solid #333;
+            border-top: 3px solid #333;
+            margin-top: 30px;
+            padding-top: 20px;
+            font-weight: bold;
+            font-size: 20px;
+        }
+        
+        .receipt-footer {
+            margin-top: 60px;
+            text-align: center;
+        }
+        
+        .receipt-signature {
+            margin-top: 80px;
+            display: flex;
+            justify-content: space-around;
+        }
+        
+        .signature-line {
+            text-align: center;
+        }
+        
+        .signature-line p {
             margin-top: 10px;
             padding-top: 10px;
-            font-weight: bold;
-            font-size: 18px;
+            border-top: 2px solid #333;
+            min-width: 200px;
+        }
+        
+        .receipt-buttons {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .receipt-buttons button {
+            width: auto;
+            padding: 10px 20px;
         }
         
         @media print {
             body * {
                 visibility: hidden;
             }
-            #receipt, #receipt * {
+            .receipt-page,
+            .receipt-page * {
                 visibility: visible;
             }
-            #receipt {
+            .receipt-page {
                 position: absolute;
                 left: 0;
                 top: 0;
+                width: 100%;
             }
+            .receipt-buttons {
+                display: none;
+            }
+            .receipt-content {
+                margin: 0;
+                padding: 15mm;
+            }
+        }
+        
+        @page {
+            size: A4 portrait;
+            margin: 0;
         }
     </style>
 </head>
@@ -171,143 +338,243 @@
         <div class="success" id="successMsg"></div>
         
         <div class="info-box">
-            <strong>📌 Setup Required:</strong> Please configure your Google Sheets API credentials below before using this system.
+            <strong>📌 Setup Required:</strong> Configure your Google Apps Script Web App URL below.
         </div>
         
         <div class="form-group">
-            <label>Google Sheets ID</label>
-            <input type="text" id="sheetId" placeholder="Enter your Google Sheet ID">
+            <label>Google Apps Script URL</label>
+            <input type="text" id="scriptUrl" placeholder="https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec">
+            <small style="color: #666;">Paste your deployed web app URL here</small>
         </div>
         
-        <div class="form-group">
-            <label>API Key</label>
-            <input type="text" id="apiKey" placeholder="Enter your Google API Key">
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('payment')">💰 New Payment</button>
+            <button class="tab" onclick="switchTab('records')">📋 View Records</button>
+            <button class="tab" onclick="switchTab('settings')">⚙️ Settings</button>
         </div>
         
-        <hr style="margin: 30px 0;">
-        
-        <h2 style="margin-bottom: 20px;">Record Payment</h2>
-        
-        <div class="form-group">
-            <label>Student Name</label>
-            <input type="text" id="studentName" placeholder="Enter student name">
-        </div>
-        
-        <div class="form-group">
-            <label>Student IC/ID Number</label>
-            <input type="text" id="studentId" placeholder="Enter IC or ID number">
-        </div>
-        
-        <div class="form-group">
-            <label>Phone Number</label>
-            <input type="text" id="phone" placeholder="Enter phone number">
-        </div>
-        
-        <div class="form-group">
-            <label>Course Type</label>
-            <select id="courseType">
-                <option value="">Select course</option>
-                <option value="Car (Manual)">Car (Manual)</option>
-                <option value="Car (Auto)">Car (Auto)</option>
-                <option value="Motorcycle">Motorcycle</option>
-                <option value="Other">Other</option>
-            </select>
-        </div>
-        
-        <div class="form-group">
-            <label>Total Course Fee (RM)</label>
-            <input type="number" id="totalFee" placeholder="0.00" step="0.01">
-        </div>
-        
-        <div class="form-group">
-            <label>Payment Amount (RM)</label>
-            <input type="number" id="paymentAmount" placeholder="0.00" step="0.01">
-        </div>
-        
-        <div class="form-group">
-            <label>Payment Method</label>
-            <select id="paymentMethod">
-                <option value="Cash">Cash</option>
-                <option value="Bank Transfer">Bank Transfer</option>
-                <option value="Online Banking">Online Banking</option>
-                <option value="Card">Card</option>
-            </select>
-        </div>
-        
-        <button class="btn" onclick="recordPayment()">Record Payment & Generate Receipt</button>
-        
-        <div class="balance-display" id="balanceDisplay" style="display: none;">
-            Balance Remaining: <span id="balanceAmount">RM 0.00</span>
-        </div>
-        
-        <div id="receipt">
-            <div class="receipt-header">
-                <h2>PAYMENT RECEIPT</h2>
-                <p id="receiptSchool">Your Driving School Name</p>
-                <p>Address: Your Address Here</p>
-                <p>Tel: Your Phone Number</p>
+        <!-- Payment Tab -->
+        <div class="tab-content active" id="payment-tab">
+            <h2 style="margin-bottom: 20px;">Record Payment</h2>
+            
+            <div class="form-group">
+                <label>Student Name *</label>
+                <input type="text" id="studentName" placeholder="Enter student name">
             </div>
             
-            <div style="margin: 20px 0;">
+            <div class="form-group">
+                <label>Student IC/ID Number *</label>
+                <input type="text" id="studentId" placeholder="Enter IC or ID number">
+            </div>
+            
+            <div class="form-group">
+                <label>Phone Number</label>
+                <input type="text" id="phone" placeholder="Enter phone number">
+            </div>
+            
+            <div class="form-group">
+                <label>Course Type *</label>
+                <select id="courseType">
+                    <option value="">Select course</option>
+                    <option value="Car (Manual)">Car (Manual)</option>
+                    <option value="Car (Auto)">Car (Auto)</option>
+                    <option value="Motorcycle">Motorcycle</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Total Course Fee (RM) *</label>
+                <input type="number" id="totalFee" placeholder="0.00" step="0.01">
+            </div>
+            
+            <div class="form-group">
+                <label>Payment Amount (RM) *</label>
+                <input type="number" id="paymentAmount" placeholder="0.00" step="0.01">
+            </div>
+            
+            <div class="form-group">
+                <label>Payment Method</label>
+                <select id="paymentMethod">
+                    <option value="Cash">Cash</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                    <option value="Online Banking">Online Banking</option>
+                    <option value="Card">Card</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Notes (Optional)</label>
+                <textarea id="notes" rows="3" placeholder="Any additional notes..."></textarea>
+            </div>
+            
+            <button class="btn" onclick="recordPayment()" id="submitBtn">Record Payment & Generate Receipt</button>
+            
+            <div class="balance-display" id="balanceDisplay" style="display: none;">
+                Balance Remaining: <span id="balanceAmount">RM 0.00</span>
+            </div>
+        </div>
+        
+        <!-- Records Tab -->
+        <div class="tab-content" id="records-tab">
+            <h2 style="margin-bottom: 20px;">Student Records</h2>
+            
+            <div class="form-group">
+                <input type="text" id="searchInput" placeholder="🔍 Search by name or IC/ID..." onkeyup="filterRecords()">
+            </div>
+            
+            <button class="btn btn-secondary" onclick="loadRecords()">🔄 Refresh Records</button>
+            
+            <div id="recordsContainer">
+                <p class="loading">Click "Refresh Records" to load data</p>
+            </div>
+        </div>
+        
+        <!-- Settings Tab -->
+        <div class="tab-content" id="settings-tab">
+            <h2 style="margin-bottom: 20px;">Business Information</h2>
+            
+            <div class="form-group">
+                <label>School Name</label>
+                <input type="text" id="schoolName" placeholder="Your Driving School Name">
+            </div>
+            
+            <div class="form-group">
+                <label>Address</label>
+                <textarea id="schoolAddress" rows="3" placeholder="Your school address"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>Phone</label>
+                <input type="text" id="schoolPhone" placeholder="Contact number">
+            </div>
+            
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="schoolEmail" placeholder="email@example.com">
+            </div>
+            
+            <div class="form-group">
+                <label>Registration Number (Optional)</label>
+                <input type="text" id="schoolReg" placeholder="Business registration number">
+            </div>
+            
+            <button class="btn" onclick="saveSettings()">💾 Save Settings</button>
+        </div>
+    </div>
+    
+    <!-- Receipt Page -->
+    <div class="receipt-page" id="receiptPage">
+        <div class="receipt-buttons">
+            <button class="btn btn-secondary" onclick="window.print()">🖨️ Print</button>
+            <button class="btn btn-danger" onclick="closeReceipt()">✕ Close</button>
+        </div>
+        
+        <div class="receipt-content">
+            <div class="receipt-header">
+                <h1 id="receiptSchoolName">DRIVING SCHOOL</h1>
+                <h2>PAYMENT RECEIPT / INVOICE</h2>
+                <div id="receiptSchoolInfo" style="margin-top: 15px; font-size: 14px; color: #666;"></div>
+            </div>
+            
+            <div class="receipt-section">
                 <div class="receipt-row">
-                    <span>Receipt No:</span>
+                    <strong>Receipt No:</strong>
                     <span id="receiptNo"></span>
                 </div>
                 <div class="receipt-row">
-                    <span>Date:</span>
+                    <strong>Date:</strong>
                     <span id="receiptDate"></span>
                 </div>
             </div>
             
-            <div style="margin: 20px 0;">
+            <div class="receipt-section">
+                <h3>Student Information</h3>
                 <div class="receipt-row">
-                    <span>Student Name:</span>
+                    <strong>Name:</strong>
                     <span id="receiptStudent"></span>
                 </div>
                 <div class="receipt-row">
-                    <span>IC/ID:</span>
+                    <strong>IC/ID Number:</strong>
                     <span id="receiptId"></span>
                 </div>
                 <div class="receipt-row">
-                    <span>Phone:</span>
+                    <strong>Phone:</strong>
                     <span id="receiptPhone"></span>
                 </div>
                 <div class="receipt-row">
-                    <span>Course:</span>
+                    <strong>Course Type:</strong>
                     <span id="receiptCourse"></span>
                 </div>
             </div>
             
-            <div style="margin: 20px 0;">
+            <div class="receipt-section">
+                <h3>Payment Details</h3>
                 <div class="receipt-row">
-                    <span>Total Course Fee:</span>
+                    <strong>Total Course Fee:</strong>
                     <span id="receiptTotalFee"></span>
                 </div>
                 <div class="receipt-row">
-                    <span>Payment Amount:</span>
+                    <strong>Payment Amount:</strong>
                     <span id="receiptPayment"></span>
                 </div>
                 <div class="receipt-row">
-                    <span>Payment Method:</span>
+                    <strong>Payment Method:</strong>
                     <span id="receiptMethod"></span>
                 </div>
+                <div class="receipt-row" id="receiptNotesRow" style="display: none;">
+                    <strong>Notes:</strong>
+                    <span id="receiptNotes"></span>
+                </div>
                 <div class="receipt-row receipt-total">
-                    <span>Balance Remaining:</span>
+                    <strong>Balance Remaining:</strong>
                     <span id="receiptBalance"></span>
                 </div>
             </div>
             
-            <div style="margin-top: 40px; text-align: center;">
-                <p>_______________________</p>
-                <p>Authorized Signature</p>
+            <div class="receipt-footer">
+                <p style="margin-bottom: 20px;">Thank you for your payment!</p>
+                <p style="font-size: 12px; color: #666;">This is a computer-generated receipt.</p>
+                
+                <div class="receipt-signature">
+                    <div class="signature-line">
+                        <p>Received By</p>
+                    </div>
+                    <div class="signature-line">
+                        <p>Customer Signature</p>
+                    </div>
+                </div>
             </div>
-            
-            <button class="btn btn-secondary" onclick="window.print()" style="margin-top: 20px;">Print Receipt</button>
         </div>
     </div>
 
     <script>
-        let students = {};
+        let allRecords = [];
+
+        // Load settings from browser
+        window.addEventListener('load', () => {
+            const scriptUrl = localStorage.getItem('scriptUrl');
+            const schoolName = localStorage.getItem('schoolName');
+            const schoolAddress = localStorage.getItem('schoolAddress');
+            const schoolPhone = localStorage.getItem('schoolPhone');
+            const schoolEmail = localStorage.getItem('schoolEmail');
+            const schoolReg = localStorage.getItem('schoolReg');
+            
+            if (scriptUrl) document.getElementById('scriptUrl').value = scriptUrl;
+            if (schoolName) document.getElementById('schoolName').value = schoolName;
+            if (schoolAddress) document.getElementById('schoolAddress').value = schoolAddress;
+            if (schoolPhone) document.getElementById('schoolPhone').value = schoolPhone;
+            if (schoolEmail) document.getElementById('schoolEmail').value = schoolEmail;
+            if (schoolReg) document.getElementById('schoolReg').value = schoolReg;
+        });
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+        }
 
         function showError(message) {
             const errorMsg = document.getElementById('errorMsg');
@@ -323,7 +590,24 @@
             setTimeout(() => successMsg.style.display = 'none', 5000);
         }
 
+        function saveSettings() {
+            const schoolName = document.getElementById('schoolName').value;
+            const schoolAddress = document.getElementById('schoolAddress').value;
+            const schoolPhone = document.getElementById('schoolPhone').value;
+            const schoolEmail = document.getElementById('schoolEmail').value;
+            const schoolReg = document.getElementById('schoolReg').value;
+            
+            localStorage.setItem('schoolName', schoolName);
+            localStorage.setItem('schoolAddress', schoolAddress);
+            localStorage.setItem('schoolPhone', schoolPhone);
+            localStorage.setItem('schoolEmail', schoolEmail);
+            localStorage.setItem('schoolReg', schoolReg);
+            
+            showSuccess('Settings saved successfully!');
+        }
+
         async function recordPayment() {
+            const scriptUrl = document.getElementById('scriptUrl').value;
             const studentName = document.getElementById('studentName').value;
             const studentId = document.getElementById('studentId').value;
             const phone = document.getElementById('phone').value;
@@ -331,71 +615,172 @@
             const totalFee = parseFloat(document.getElementById('totalFee').value);
             const paymentAmount = parseFloat(document.getElementById('paymentAmount').value);
             const paymentMethod = document.getElementById('paymentMethod').value;
-            const sheetId = document.getElementById('sheetId').value;
-            const apiKey = document.getElementById('apiKey').value;
+            const notes = document.getElementById('notes').value;
+
+            if (!scriptUrl) {
+                showError('Please configure Google Apps Script URL first');
+                return;
+            }
 
             if (!studentName || !studentId || !courseType || !totalFee || !paymentAmount) {
-                showError('Please fill in all required fields');
+                showError('Please fill in all required fields (*)');
                 return;
             }
 
-            if (!sheetId || !apiKey) {
-                showError('Please configure Google Sheets ID and API Key first');
-                return;
+            localStorage.setItem('scriptUrl', scriptUrl);
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Processing...';
+
+            try {
+                const response = await fetch(scriptUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'addPayment',
+                        data: {
+                            studentName,
+                            studentId,
+                            phone,
+                            courseType,
+                            totalFee,
+                            paymentAmount,
+                            paymentMethod,
+                            notes
+                        }
+                    })
+                });
+
+                // Due to no-cors, we assume success
+                showSuccess('Payment recorded successfully!');
+                
+                const balance = totalFee - paymentAmount;
+                document.getElementById('balanceDisplay').style.display = 'block';
+                document.getElementById('balanceAmount').textContent = `RM ${balance.toFixed(2)}`;
+                
+                generateReceipt(studentName, studentId, phone, courseType, totalFee, paymentAmount, paymentMethod, balance, notes);
+
+                // Clear form
+                document.getElementById('paymentAmount').value = '';
+                document.getElementById('notes').value = '';
+
+            } catch (error) {
+                showError('Error recording payment. Please check your Script URL.');
+                console.error(error);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Record Payment & Generate Receipt';
             }
-
-            // Calculate balance
-            let previousPayments = 0;
-            if (students[studentId]) {
-                previousPayments = students[studentId].totalPaid;
-            }
-            
-            const totalPaid = previousPayments + paymentAmount;
-            const balance = totalFee - totalPaid;
-
-            // Store in memory
-            students[studentId] = {
-                name: studentName,
-                phone: phone,
-                course: courseType,
-                totalFee: totalFee,
-                totalPaid: totalPaid,
-                balance: balance,
-                lastPayment: new Date().toISOString()
-            };
-
-            // Generate receipt
-            generateReceipt(studentName, studentId, phone, courseType, totalFee, paymentAmount, paymentMethod, balance);
-
-            // Here you would normally send to Google Sheets
-            // For demo, we'll show success
-            showSuccess('Payment recorded successfully!');
-
-            // Show balance
-            document.getElementById('balanceDisplay').style.display = 'block';
-            document.getElementById('balanceAmount').textContent = `RM ${balance.toFixed(2)}`;
-
-            // Clear form
-            document.getElementById('paymentAmount').value = '';
         }
 
-        function generateReceipt(name, id, phone, course, totalFee, payment, method, balance) {
+        async function loadRecords() {
+            const scriptUrl = document.getElementById('scriptUrl').value;
+            
+            if (!scriptUrl) {
+                showError('Please configure Google Apps Script URL first');
+                return;
+            }
+
+            document.getElementById('recordsContainer').innerHTML = '<p class="loading">Loading records...</p>';
+
+            try {
+                const response = await fetch(scriptUrl + '?action=getRecords');
+                const data = await response.json();
+                
+                allRecords = data.records || [];
+                displayRecords(allRecords);
+
+            } catch (error) {
+                document.getElementById('recordsContainer').innerHTML = '<p class="error">Error loading records. Make sure your Script URL is correct.</p>';
+                console.error(error);
+            }
+        }
+
+        function displayRecords(records) {
+            if (records.length === 0) {
+                document.getElementById('recordsContainer').innerHTML = '<p class="loading">No records found</p>';
+                return;
+            }
+
+            let html = '<table class="records-table"><thead><tr><th>Date</th><th>Name</th><th>IC/ID</th><th>Course</th><th>Total Fee</th><th>Paid</th><th>Balance</th></tr></thead><tbody>';
+            
+            records.forEach(record => {
+                html += `<tr>
+                    <td>${record.date}</td>
+                    <td>${record.name}</td>
+                    <td>${record.id}</td>
+                    <td>${record.course}</td>
+                    <td>RM ${parseFloat(record.totalFee).toFixed(2)}</td>
+                    <td>RM ${parseFloat(record.totalPaid).toFixed(2)}</td>
+                    <td>RM ${parseFloat(record.balance).toFixed(2)}</td>
+                </tr>`;
+            });
+            
+            html += '</tbody></table>';
+            document.getElementById('recordsContainer').innerHTML = html;
+        }
+
+        function filterRecords() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allRecords.filter(record => 
+                record.name.toLowerCase().includes(searchTerm) || 
+                record.id.toLowerCase().includes(searchTerm)
+            );
+            displayRecords(filtered);
+        }
+
+        function generateReceipt(name, id, phone, course, totalFee, payment, method, balance, notes) {
             const receiptNo = 'R' + Date.now();
-            const date = new Date().toLocaleDateString('en-MY');
+            const date = new Date().toLocaleDateString('en-MY', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+
+            const schoolName = document.getElementById('schoolName').value || 'YOUR DRIVING SCHOOL';
+            const schoolAddress = document.getElementById('schoolAddress').value;
+            const schoolPhone = document.getElementById('schoolPhone').value;
+            const schoolEmail = document.getElementById('schoolEmail').value;
+            const schoolReg = document.getElementById('schoolReg').value;
+
+            document.getElementById('receiptSchoolName').textContent = schoolName.toUpperCase();
+            
+            let schoolInfo = '';
+            if (schoolAddress) schoolInfo += schoolAddress + '<br>';
+            if (schoolPhone) schoolInfo += 'Tel: ' + schoolPhone + '<br>';
+            if (schoolEmail) schoolInfo += 'Email: ' + schoolEmail + '<br>';
+            if (schoolReg) schoolInfo += 'Reg No: ' + schoolReg;
+            document.getElementById('receiptSchoolInfo').innerHTML = schoolInfo;
 
             document.getElementById('receiptNo').textContent = receiptNo;
             document.getElementById('receiptDate').textContent = date;
             document.getElementById('receiptStudent').textContent = name;
             document.getElementById('receiptId').textContent = id;
-            document.getElementById('receiptPhone').textContent = phone;
+            document.getElementById('receiptPhone').textContent = phone || '-';
             document.getElementById('receiptCourse').textContent = course;
             document.getElementById('receiptTotalFee').textContent = `RM ${totalFee.toFixed(2)}`;
             document.getElementById('receiptPayment').textContent = `RM ${payment.toFixed(2)}`;
             document.getElementById('receiptMethod').textContent = method;
             document.getElementById('receiptBalance').textContent = `RM ${balance.toFixed(2)}`;
+            
+            if (notes) {
+                document.getElementById('receiptNotesRow').style.display = 'flex';
+                document.getElementById('receiptNotes').textContent = notes;
+            } else {
+                document.getElementById('receiptNotesRow').style.display = 'none';
+            }
 
-            document.getElementById('receipt').style.display = 'block';
-            document.getElementById('receipt').scrollIntoView({ behavior: 'smooth' });
+            document.getElementById('receiptPage').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeReceipt() {
+            document.getElementById('receiptPage').style.display = 'none';
+            document.body.style.overflow = 'auto';
         }
     </script>
 </body>
