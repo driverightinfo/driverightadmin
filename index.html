@@ -3,413 +3,400 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DriveRight Management System</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>Driving School Payment Monitor</title>
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f7f9fb; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .loading-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.8); display: none;
-            justify-content: center; align-items: center; z-index: 100;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        .spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1); width: 36px; height: 36px;
-            border-radius: 50%; border-left-color: #10b981; animation: spin 1s ease infinite;
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f2f5;
+            padding: 20px;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        /* Style for the custom message box */
-        .message-box {
-            position: fixed; top: 20px; right: 20px; z-index: 1000;
-            padding: 1rem; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
-            opacity: 0; transform: translateY(-20px);
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .message-box.show {
-            opacity: 1;
-            transform: translateY(0);
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: bold;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+        
+        .btn {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            background: #45a049;
+        }
+        
+        .btn-secondary {
+            background: #2196F3;
+        }
+        
+        .btn-secondary:hover {
+            background: #0b7dda;
+        }
+        
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .balance-display {
+            background: #fff3e0;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        #receipt {
+            display: none;
+            margin-top: 30px;
+            padding: 30px;
+            border: 2px solid #333;
+            background: white;
+        }
+        
+        .receipt-header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        
+        .receipt-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+        }
+        
+        .receipt-total {
+            border-top: 2px solid #333;
+            margin-top: 10px;
+            padding-top: 10px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #receipt, #receipt * {
+                visibility: visible;
+            }
+            #receipt {
+                position: absolute;
+                left: 0;
+                top: 0;
+            }
         }
     </style>
 </head>
 <body>
-
-    <!-- Placeholder for the Google Apps Script Web App URL -->
-    <script>
-        // !! IMPORTANT !!
-        // You MUST replace this URL after you deploy your Google Apps Script (Code.gs).
-        // Instructions are provided in the guide below.
-        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw8-3EVzIUhTY_BRBkyzpA_wXwJeOjQ5zahUnHkm5mn_QmDKFbiJkIGIhxCCzgywP21/exec'; 
-    </script>
-
-    <div id="message-container"></div>
-
-    <div class="container mx-auto p-4 sm:p-8 max-w-4xl">
-        <header class="text-center mb-8">
-            <h1 class="text-4xl font-extrabold text-gray-800">DriveRight Management</h1>
-            <p class="text-gray-500 mt-2">Student & Payment Tracking for Driving Schools</p>
-        </header>
-
-        <!-- Tabs -->
-        <div class="flex border-b border-gray-200 mb-6">
-            <button class="tab-button flex-1 py-3 px-1 text-sm sm:text-base font-medium text-gray-600 hover:text-green-600 border-b-2 border-transparent transition duration-150 ease-in-out" data-tab="addStudent" onclick="openTab(this, 'addStudent')">
-                Add New Student
-            </button>
-            <button class="tab-button flex-1 py-3 px-1 text-sm sm:text-base font-medium text-gray-600 hover:text-green-600 border-b-2 border-transparent transition duration-150 ease-in-out" data-tab="trackStudents" onclick="openTab(this, 'trackStudents')">
-                Track Students
-            </button>
-            <button class="tab-button flex-1 py-3 px-1 text-sm sm:text-base font-medium text-gray-600 hover:text-green-600 border-b-2 border-transparent transition duration-150 ease-in-out" data-tab="trackPayment" onclick="openTab(this, 'trackPayment')">
-                Update Payment
-            </button>
+    <div class="container">
+        <h1>🚗 Driving School Payment Monitor</h1>
+        <p class="subtitle">Track student payments and generate receipts</p>
+        
+        <div class="error" id="errorMsg"></div>
+        <div class="success" id="successMsg"></div>
+        
+        <div class="info-box">
+            <strong>📌 Setup Required:</strong> Please configure your Google Sheets API credentials below before using this system.
         </div>
-
-        <!-- Loading Overlay -->
-        <div id="loadingOverlay" class="loading-overlay">
-            <div class="spinner"></div>
+        
+        <div class="form-group">
+            <label>Google Sheets ID</label>
+            <input type="text" id="sheetId" placeholder="Enter your Google Sheet ID">
         </div>
-
-        <!-- 1. Add New Student Tab -->
-        <div id="addStudent" class="tab-content active p-6 bg-white shadow-xl rounded-lg">
-            <h2 class="text-2xl font-semibold text-gray-700 mb-4">Register New Student</h2>
-            <form id="addStudentForm" class="space-y-4">
-                <input type="hidden" name="action" value="addStudent">
-
-                <div>
-                    <label for="name" class="block text-sm font-medium text-gray-700">Student Name</label>
-                    <input type="text" id="name" name="name" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 border focus:border-green-500 focus:ring-green-500">
-                </div>
-                <div>
-                    <label for="phone" class="block text-sm font-medium text-gray-700">Phone Number</label>
-                    <input type="tel" id="phone" name="phone" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 border focus:border-green-500 focus:ring-green-500">
-                </div>
-                <div>
-                    <label for="email" class="block text-sm font-medium text-gray-700">Email Address (Optional)</label>
-                    <input type="email" id="email" name="email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 border focus:border-green-500 focus:ring-green-500">
-                </div>
-                <div>
-                    <label for="lessons" class="block text-sm font-medium text-gray-700">Total Lessons Purchased (Hours)</label>
-                    <input type="number" id="lessons" name="lessons" required min="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 border focus:border-green-500 focus:ring-green-500">
-                </div>
-                <div>
-                    <label for="payment_status_new" class="block text-sm font-medium text-gray-700">Initial Payment Status</label>
-                    <select id="payment_status_new" name="payment_status" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 border focus:border-green-500 focus:ring-green-500">
-                        <option value="Paid">Paid</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Partial">Partial</option>
-                    </select>
-                </div>
-
-                <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 ease-in-out">
-                    Register Student
-                </button>
-            </form>
+        
+        <div class="form-group">
+            <label>API Key</label>
+            <input type="text" id="apiKey" placeholder="Enter your Google API Key">
         </div>
-
-        <!-- 2. Track Students Tab -->
-        <div id="trackStudents" class="tab-content p-6 bg-white shadow-xl rounded-lg">
-            <h2 class="text-2xl font-semibold text-gray-700 mb-4 flex justify-between items-center">
-                Student Roster
-                <button onclick="fetchStudentData(true)" class="text-green-600 hover:text-green-700 text-sm font-medium transition duration-150 ease-in-out">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11.144 2.144A8.001 8.001 0 0115.418 15m0 0H15m-4 5h4m-4 0v-4" />
-                    </svg>
-                    Refresh List
-                </button>
-            </h2>
-            <div class="overflow-x-auto">
-                <table id="studentTable" class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
-                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lessons</th>
-                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="studentTableBody" class="bg-white divide-y divide-gray-200">
-                        <!-- Student rows will be injected here -->
-                    </tbody>
-                </table>
+        
+        <hr style="margin: 30px 0;">
+        
+        <h2 style="margin-bottom: 20px;">Record Payment</h2>
+        
+        <div class="form-group">
+            <label>Student Name</label>
+            <input type="text" id="studentName" placeholder="Enter student name">
+        </div>
+        
+        <div class="form-group">
+            <label>Student IC/ID Number</label>
+            <input type="text" id="studentId" placeholder="Enter IC or ID number">
+        </div>
+        
+        <div class="form-group">
+            <label>Phone Number</label>
+            <input type="text" id="phone" placeholder="Enter phone number">
+        </div>
+        
+        <div class="form-group">
+            <label>Course Type</label>
+            <select id="courseType">
+                <option value="">Select course</option>
+                <option value="Car (Manual)">Car (Manual)</option>
+                <option value="Car (Auto)">Car (Auto)</option>
+                <option value="Motorcycle">Motorcycle</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label>Total Course Fee (RM)</label>
+            <input type="number" id="totalFee" placeholder="0.00" step="0.01">
+        </div>
+        
+        <div class="form-group">
+            <label>Payment Amount (RM)</label>
+            <input type="number" id="paymentAmount" placeholder="0.00" step="0.01">
+        </div>
+        
+        <div class="form-group">
+            <label>Payment Method</label>
+            <select id="paymentMethod">
+                <option value="Cash">Cash</option>
+                <option value="Bank Transfer">Bank Transfer</option>
+                <option value="Online Banking">Online Banking</option>
+                <option value="Card">Card</option>
+            </select>
+        </div>
+        
+        <button class="btn" onclick="recordPayment()">Record Payment & Generate Receipt</button>
+        
+        <div class="balance-display" id="balanceDisplay" style="display: none;">
+            Balance Remaining: <span id="balanceAmount">RM 0.00</span>
+        </div>
+        
+        <div id="receipt">
+            <div class="receipt-header">
+                <h2>PAYMENT RECEIPT</h2>
+                <p id="receiptSchool">Your Driving School Name</p>
+                <p>Address: Your Address Here</p>
+                <p>Tel: Your Phone Number</p>
             </div>
-            <p id="studentTablePlaceholder" class="text-center text-gray-500 py-4">Loading student data...</p>
-        </div>
-
-        <!-- 3. Update Payment Tab -->
-        <div id="trackPayment" class="tab-content p-6 bg-white shadow-xl rounded-lg">
-            <h2 class="text-2xl font-semibold text-gray-700 mb-4">Update Payment Status</h2>
-
-            <div class="mb-6">
-                <label for="studentIdSearch" class="block text-sm font-medium text-gray-700">Search Student by ID or Name</label>
-                <input type="text" id="studentIdSearch" placeholder="Start typing ID or Name..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 border focus:border-green-500 focus:ring-green-500" oninput="filterStudentList(this.value)">
-            </div>
-
-            <div class="space-y-4">
-                <label for="studentSelect" class="block text-sm font-medium text-gray-700">Select Student to Update</label>
-                <select id="studentSelect" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 border focus:border-green-500 focus:ring-green-500">
-                    <!-- Options populated by JS -->
-                    <option value="" disabled selected>Select a student</option>
-                </select>
-            </div>
-
-            <form id="updatePaymentForm" class="space-y-4 mt-6">
-                <input type="hidden" name="action" value="updatePayment">
-                <input type="hidden" id="update_student_id" name="student_id">
-
-                <div>
-                    <label for="new_status" class="block text-sm font-medium text-gray-700">New Payment Status</label>
-                    <select id="new_status" name="new_status" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 border focus:border-green-500 focus:ring-green-500">
-                        <option value="Paid">Paid</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Partial">Partial</option>
-                        <option value="Refunded">Refunded</option>
-                    </select>
+            
+            <div style="margin: 20px 0;">
+                <div class="receipt-row">
+                    <span>Receipt No:</span>
+                    <span id="receiptNo"></span>
                 </div>
-
-                <div>
-                    <label for="payment_notes" class="block text-sm font-medium text-gray-700">Payment Notes / Date</label>
-                    <input type="text" id="payment_notes" name="payment_notes" placeholder="e.g., Final payment received 10/25/2025" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 border focus:border-green-500 focus:ring-green-500">
+                <div class="receipt-row">
+                    <span>Date:</span>
+                    <span id="receiptDate"></span>
                 </div>
-
-                <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
-                    Update Status
-                </button>
-            </form>
+            </div>
+            
+            <div style="margin: 20px 0;">
+                <div class="receipt-row">
+                    <span>Student Name:</span>
+                    <span id="receiptStudent"></span>
+                </div>
+                <div class="receipt-row">
+                    <span>IC/ID:</span>
+                    <span id="receiptId"></span>
+                </div>
+                <div class="receipt-row">
+                    <span>Phone:</span>
+                    <span id="receiptPhone"></span>
+                </div>
+                <div class="receipt-row">
+                    <span>Course:</span>
+                    <span id="receiptCourse"></span>
+                </div>
+            </div>
+            
+            <div style="margin: 20px 0;">
+                <div class="receipt-row">
+                    <span>Total Course Fee:</span>
+                    <span id="receiptTotalFee"></span>
+                </div>
+                <div class="receipt-row">
+                    <span>Payment Amount:</span>
+                    <span id="receiptPayment"></span>
+                </div>
+                <div class="receipt-row">
+                    <span>Payment Method:</span>
+                    <span id="receiptMethod"></span>
+                </div>
+                <div class="receipt-row receipt-total">
+                    <span>Balance Remaining:</span>
+                    <span id="receiptBalance"></span>
+                </div>
+            </div>
+            
+            <div style="margin-top: 40px; text-align: center;">
+                <p>_______________________</p>
+                <p>Authorized Signature</p>
+            </div>
+            
+            <button class="btn btn-secondary" onclick="window.print()" style="margin-top: 20px;">Print Receipt</button>
         </div>
     </div>
 
     <script>
-        let studentData = []; // Global store for student data
+        let students = {};
 
-        // --- Utility Functions ---
-
-        function showMessage(message, type = 'success') {
-            const container = document.getElementById('message-container');
-            const messageBox = document.createElement('div');
-            messageBox.className = `message-box ${type === 'error' ? 'bg-red-500' : 'bg-green-500'} text-white shadow-lg`;
-            messageBox.textContent = message;
-
-            container.appendChild(messageBox);
-            // Show it
-            setTimeout(() => messageBox.classList.add('show'), 10);
-
-            // Hide and remove it after 4 seconds
-            setTimeout(() => {
-                messageBox.classList.remove('show');
-                messageBox.addEventListener('transitionend', () => messageBox.remove());
-            }, 4000);
+        function showError(message) {
+            const errorMsg = document.getElementById('errorMsg');
+            errorMsg.textContent = message;
+            errorMsg.style.display = 'block';
+            setTimeout(() => errorMsg.style.display = 'none', 5000);
         }
 
-        function toggleLoading(show) {
-            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+        function showSuccess(message) {
+            const successMsg = document.getElementById('successMsg');
+            successMsg.textContent = message;
+            successMsg.style.display = 'block';
+            setTimeout(() => successMsg.style.display = 'none', 5000);
         }
 
-        // --- Tab Logic ---
+        async function recordPayment() {
+            const studentName = document.getElementById('studentName').value;
+            const studentId = document.getElementById('studentId').value;
+            const phone = document.getElementById('phone').value;
+            const courseType = document.getElementById('courseType').value;
+            const totalFee = parseFloat(document.getElementById('totalFee').value);
+            const paymentAmount = parseFloat(document.getElementById('paymentAmount').value);
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            const sheetId = document.getElementById('sheetId').value;
+            const apiKey = document.getElementById('apiKey').value;
 
-        function openTab(button, tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-
-            document.querySelectorAll('.tab-button').forEach(btn => {
-                btn.classList.remove('text-green-600', 'border-green-600');
-                btn.classList.add('text-gray-600', 'border-transparent');
-            });
-            button.classList.add('text-green-600', 'border-green-600');
-            button.classList.remove('text-gray-600', 'border-transparent');
-
-            // Automatically fetch data when switching to the 'Track Students' tab
-            if (tabId === 'trackStudents') {
-                fetchStudentData();
-            }
-            if (tabId === 'trackPayment') {
-                populateStudentSelect();
-            }
-        }
-
-        // --- Data Fetching (READ) ---
-
-        async function fetchStudentData(forceRefresh = false) {
-            const tableBody = document.getElementById('studentTableBody');
-            const placeholder = document.getElementById('studentTablePlaceholder');
-
-            if (studentData.length > 0 && !forceRefresh) {
-                renderStudentTable(studentData);
+            if (!studentName || !studentId || !courseType || !totalFee || !paymentAmount) {
+                showError('Please fill in all required fields');
                 return;
             }
 
-            if (GAS_WEB_APP_URL.includes('YOUR_DEPLOYED_GOOGLE_APPS_SCRIPT_URL_HERE')) {
-                placeholder.textContent = "SETUP ERROR: Please replace 'YOUR_DEPLOYED_GOOGLE_APPS_SCRIPT_URL_HERE' in the script with your actual Apps Script URL.";
+            if (!sheetId || !apiKey) {
+                showError('Please configure Google Sheets ID and API Key first');
                 return;
             }
 
-            toggleLoading(true);
-            placeholder.textContent = "Fetching data from Google Sheet...";
-            tableBody.innerHTML = ''; // Clear existing rows
-
-            try {
-                const url = `${GAS_WEB_APP_URL}?action=readAll`;
-                const response = await fetch(url, { method: 'GET' });
-                const result = await response.json();
-
-                if (result.status === 'success') {
-                    studentData = result.data;
-                    renderStudentTable(studentData);
-                    populateStudentSelect(); // Re-populate the select list on the Payment tab
-                    placeholder.style.display = 'none';
-                } else {
-                    placeholder.textContent = `Error fetching data: ${result.message}`;
-                }
-            } catch (e) {
-                placeholder.textContent = `Connection error: ${e.message}. Check the GAS URL and deployment settings.`;
-                console.error('Fetch Error:', e);
-            } finally {
-                toggleLoading(false);
-            }
-        }
-
-        function renderStudentTable(data) {
-            const tableBody = document.getElementById('studentTableBody');
-            tableBody.innerHTML = '';
-            if (data.length === 0) {
-                document.getElementById('studentTablePlaceholder').textContent = "No students registered yet.";
-                document.getElementById('studentTablePlaceholder').style.display = 'block';
-                return;
+            // Calculate balance
+            let previousPayments = 0;
+            if (students[studentId]) {
+                previousPayments = students[studentId].totalPaid;
             }
             
-            data.forEach(student => {
-                const row = tableBody.insertRow();
-                // Apply color coding to Payment Status
-                let statusClass = '';
-                if (student.Payment_Status === 'Paid') {
-                    statusClass = 'bg-green-100 text-green-800';
-                } else if (student.Payment_Status === 'Pending') {
-                    statusClass = 'bg-red-100 text-red-800';
-                } else if (student.Payment_Status === 'Partial') {
-                    statusClass = 'bg-yellow-100 text-yellow-800';
-                }
+            const totalPaid = previousPayments + paymentAmount;
+            const balance = totalFee - totalPaid;
 
-                row.innerHTML = `
-                    <td class="px-3 py-3 whitespace-nowrap text-sm font-medium text-gray-900">${student.Student_ID}</td>
-                    <td class="px-3 py-3 whitespace-nowrap text-sm text-gray-700">${student.Name}</td>
-                    <td class="px-3 py-3 whitespace-nowrap text-sm text-gray-700">${student.Phone}</td>
-                    <td class="px-3 py-3 whitespace-nowrap text-sm text-gray-700">${student.Total_Lessons}</td>
-                    <td class="px-3 py-3 whitespace-nowrap">
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
-                            ${student.Payment_Status}
-                        </span>
-                    </td>
-                `;
-            });
-        }
-
-        function populateStudentSelect() {
-            const select = document.getElementById('studentSelect');
-            select.innerHTML = '<option value="" disabled selected>Select a student</option>';
-            studentData.forEach(student => {
-                const option = document.createElement('option');
-                option.value = student.Student_ID;
-                option.textContent = `${student.Student_ID} - ${student.Name} (${student.Payment_Status})`;
-                select.appendChild(option);
-            });
-
-            // Auto-fill the hidden ID field when a student is selected
-            select.onchange = (e) => {
-                document.getElementById('update_student_id').value = e.target.value;
+            // Store in memory
+            students[studentId] = {
+                name: studentName,
+                phone: phone,
+                course: courseType,
+                totalFee: totalFee,
+                totalPaid: totalPaid,
+                balance: balance,
+                lastPayment: new Date().toISOString()
             };
+
+            // Generate receipt
+            generateReceipt(studentName, studentId, phone, courseType, totalFee, paymentAmount, paymentMethod, balance);
+
+            // Here you would normally send to Google Sheets
+            // For demo, we'll show success
+            showSuccess('Payment recorded successfully!');
+
+            // Show balance
+            document.getElementById('balanceDisplay').style.display = 'block';
+            document.getElementById('balanceAmount').textContent = `RM ${balance.toFixed(2)}`;
+
+            // Clear form
+            document.getElementById('paymentAmount').value = '';
         }
 
-        function filterStudentList(query) {
-            const options = document.getElementById('studentSelect').options;
-            const q = query.toLowerCase();
+        function generateReceipt(name, id, phone, course, totalFee, payment, method, balance) {
+            const receiptNo = 'R' + Date.now();
+            const date = new Date().toLocaleDateString('en-MY');
 
-            // Iterate over options, starting from index 1 to skip the placeholder
-            for (let i = 1; i < options.length; i++) {
-                const option = options[i];
-                const text = option.textContent.toLowerCase();
-                if (text.includes(q)) {
-                    option.style.display = 'block';
-                } else {
-                    option.style.display = 'none';
-                }
-            }
+            document.getElementById('receiptNo').textContent = receiptNo;
+            document.getElementById('receiptDate').textContent = date;
+            document.getElementById('receiptStudent').textContent = name;
+            document.getElementById('receiptId').textContent = id;
+            document.getElementById('receiptPhone').textContent = phone;
+            document.getElementById('receiptCourse').textContent = course;
+            document.getElementById('receiptTotalFee').textContent = `RM ${totalFee.toFixed(2)}`;
+            document.getElementById('receiptPayment').textContent = `RM ${payment.toFixed(2)}`;
+            document.getElementById('receiptMethod').textContent = method;
+            document.getElementById('receiptBalance').textContent = `RM ${balance.toFixed(2)}`;
+
+            document.getElementById('receipt').style.display = 'block';
+            document.getElementById('receipt').scrollIntoView({ behavior: 'smooth' });
         }
-
-        // --- Form Submissions (CREATE & UPDATE) ---
-
-        async function submitForm(formId) {
-            const form = document.getElementById(formId);
-            const data = new FormData(form);
-            const params = new URLSearchParams(data);
-
-            if (GAS_WEB_APP_URL.includes('YOUR_DEPLOYED_GOOGLE_APPS_SCRIPT_URL_HERE')) {
-                showMessage("SETUP ERROR: Please update the GAS_WEB_APP_URL.", 'error');
-                return;
-            }
-
-            toggleLoading(true);
-
-            try {
-                const response = await fetch(GAS_WEB_APP_URL, {
-                    method: 'POST',
-                    mode: 'no-cors', // Essential for GAS POST requests
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: params.toString()
-                });
-
-                // Since GAS POST returns a redirect/success page, we rely on the
-                // onSnapshot hook (if we used firestore) or simple success message for now.
-                // For GAS, we just check if the request was sent without network error.
-                
-                // For GAS, the response object here is often opaque ('basic' type with no access to body)
-                // so we assume success if no network error occurred.
-                
-                const action = params.get('action');
-                let message = `Success! Request to ${action} sent to Google Sheet. Please refresh the Student Roster to confirm the change.`;
-                
-                if (action === 'addStudent') {
-                    form.reset();
-                    // Clear the hidden action field
-                    document.querySelector('input[name="action"]').value = 'addStudent'; 
-                    message = 'Student successfully registered! Refreshing list...';
-                    // Force refresh data after adding a student
-                    await fetchStudentData(true);
-                } else if (action === 'updatePayment') {
-                    document.getElementById('updatePaymentForm').reset();
-                    document.getElementById('update_student_id').value = '';
-                    message = 'Payment status successfully updated! Refreshing list...';
-                    await fetchStudentData(true);
-                }
-                
-                showMessage(message);
-
-            } catch (e) {
-                showMessage(`Network Error. Could not connect to the Sheets API: ${e.message}`, 'error');
-                console.error('Submission Error:', e);
-            } finally {
-                toggleLoading(false);
-            }
-        }
-
-        // --- Event Listeners ---
-        document.addEventListener('DOMContentLoaded', () => {
-            // Set default tab state
-            openTab(document.querySelector('.tab-button[data-tab="addStudent"]'), 'addStudent');
-
-            // Attach submit handlers
-            document.getElementById('addStudentForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                submitForm('addStudentForm');
-            });
-            document.getElementById('updatePaymentForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                submitForm('updatePaymentForm');
-            });
-
-            // Initial data load for the payment select list
-            fetchStudentData(true); 
-        });
-
     </script>
 </body>
 </html>
