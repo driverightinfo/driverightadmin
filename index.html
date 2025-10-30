@@ -91,6 +91,11 @@
             border-color: #4CAF50;
         }
         
+        input:disabled {
+            background: #f5f5f5;
+            color: #666;
+        }
+        
         .btn {
             background: #4CAF50;
             color: white;
@@ -128,6 +133,12 @@
             background: #da190b;
         }
         
+        .btn-small {
+            width: auto;
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+        
         .error {
             background: #ffebee;
             color: #c62828;
@@ -153,6 +164,14 @@
             margin-bottom: 20px;
         }
         
+        .warning-box {
+            background: #fff3e0;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid #ff9800;
+        }
+        
         .balance-display {
             background: #fff3e0;
             padding: 15px;
@@ -166,11 +185,12 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
+            font-size: 14px;
         }
         
         .records-table th,
         .records-table td {
-            padding: 12px;
+            padding: 12px 8px;
             text-align: left;
             border-bottom: 1px solid #ddd;
         }
@@ -179,16 +199,69 @@
             background: #f5f5f5;
             font-weight: bold;
             color: #333;
+            position: sticky;
+            top: 0;
         }
         
         .records-table tr:hover {
             background: #f9f9f9;
         }
         
+        .records-table button {
+            margin: 0;
+        }
+        
         .loading {
             text-align: center;
             padding: 20px;
             color: #666;
+        }
+        
+        .fee-info {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #ddd;
+        }
+        
+        .modal-header h2 {
+            margin: 0;
         }
         
         /* Receipt Styles - Full Page */
@@ -348,14 +421,18 @@
         </div>
         
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('payment')">💰 New Payment</button>
-            <button class="tab" onclick="switchTab('records')">📋 View Records</button>
+            <button class="tab active" onclick="switchTab('payment')">➕ New Student</button>
+            <button class="tab" onclick="switchTab('records')">📋 All Records</button>
             <button class="tab" onclick="switchTab('settings')">⚙️ Settings</button>
         </div>
         
-        <!-- Payment Tab -->
+        <!-- Payment Tab - NEW STUDENT ONLY -->
         <div class="tab-content active" id="payment-tab">
-            <h2 style="margin-bottom: 20px;">Record Payment</h2>
+            <h2 style="margin-bottom: 20px;">Register New Student</h2>
+            
+            <div class="warning-box">
+                <strong>⚠️ Important:</strong> Use this form ONLY for NEW students. For additional payments from existing students, go to the "All Records" tab and click "Add Payment" next to their name.
+            </div>
             
             <div class="form-group">
                 <label>Student Name *</label>
@@ -374,22 +451,23 @@
             
             <div class="form-group">
                 <label>Course Type *</label>
-                <select id="courseType">
+                <select id="courseType" onchange="updateCourseFee()">
                     <option value="">Select course</option>
-                    <option value="Car (Manual)">Car (Manual)</option>
-                    <option value="Car (Auto)">Car (Auto)</option>
-                    <option value="Motorcycle">Motorcycle</option>
-                    <option value="Other">Other</option>
+                    <option value="Car (Manual)" data-fee="2200">Car (Manual) - RM 2200</option>
+                    <option value="Car (Auto)" data-fee="2400">Car (Auto) - RM 2400</option>
+                    <option value="Motorcycle" data-fee="800">Motorcycle - RM 800</option>
+                    <option value="Other" data-fee="0">Other (Custom Fee)</option>
                 </select>
             </div>
             
             <div class="form-group">
                 <label>Total Course Fee (RM) *</label>
-                <input type="number" id="totalFee" placeholder="0.00" step="0.01">
+                <input type="number" id="totalFee" placeholder="0.00" step="0.01" readonly>
+                <div class="fee-info">Fee is automatically set based on course type</div>
             </div>
             
             <div class="form-group">
-                <label>Payment Amount (RM) *</label>
+                <label>First Payment Amount (RM) *</label>
                 <input type="number" id="paymentAmount" placeholder="0.00" step="0.01">
             </div>
             
@@ -408,7 +486,7 @@
                 <textarea id="notes" rows="3" placeholder="Any additional notes..."></textarea>
             </div>
             
-            <button class="btn" onclick="recordPayment()" id="submitBtn">Record Payment & Generate Receipt</button>
+            <button class="btn" onclick="recordPayment()" id="submitBtn">Register Student & Generate Receipt</button>
             
             <div class="balance-display" id="balanceDisplay" style="display: none;">
                 Balance Remaining: <span id="balanceAmount">RM 0.00</span>
@@ -459,7 +537,57 @@
                 <input type="text" id="schoolReg" placeholder="Business registration number">
             </div>
             
+            <h3 style="margin-top: 30px; margin-bottom: 15px;">Course Fees</h3>
+            <p style="color: #666; margin-bottom: 20px;">Edit the HTML code to change course fees. Current fees are set in the Course Type dropdown.</p>
+            
             <button class="btn" onclick="saveSettings()">💾 Save Settings</button>
+        </div>
+    </div>
+    
+    <!-- Add Payment Modal -->
+    <div class="modal" id="paymentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add Payment</h2>
+            </div>
+            
+            <div class="form-group">
+                <label>Student Name</label>
+                <input type="text" id="modalStudentName" disabled>
+            </div>
+            
+            <div class="form-group">
+                <label>IC/ID</label>
+                <input type="text" id="modalStudentId" disabled>
+            </div>
+            
+            <div class="form-group">
+                <label>Current Balance</label>
+                <input type="text" id="modalCurrentBalance" disabled>
+            </div>
+            
+            <div class="form-group">
+                <label>Payment Amount (RM) *</label>
+                <input type="number" id="modalPaymentAmount" placeholder="0.00" step="0.01">
+            </div>
+            
+            <div class="form-group">
+                <label>Payment Method</label>
+                <select id="modalPaymentMethod">
+                    <option value="Cash">Cash</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                    <option value="Online Banking">Online Banking</option>
+                    <option value="Card">Card</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Notes (Optional)</label>
+                <textarea id="modalNotes" rows="3" placeholder="Any additional notes..."></textarea>
+            </div>
+            
+            <button class="btn" onclick="submitAdditionalPayment()">Submit Payment</button>
+            <button class="btn btn-danger" onclick="closeModal()" style="margin-top: 10px;">Cancel</button>
         </div>
     </div>
     
@@ -511,10 +639,6 @@
             <div class="receipt-section">
                 <h3>Payment Details</h3>
                 <div class="receipt-row">
-                    <strong>Total Course Fee:</strong>
-                    <span id="receiptTotalFee"></span>
-                </div>
-                <div class="receipt-row">
                     <strong>Payment Amount:</strong>
                     <span id="receiptPayment"></span>
                 </div>
@@ -550,6 +674,7 @@
 
     <script>
         let allRecords = [];
+        let currentStudent = null;
 
         // Load settings from browser
         window.addEventListener('load', () => {
@@ -580,6 +705,7 @@
             const errorMsg = document.getElementById('errorMsg');
             errorMsg.textContent = message;
             errorMsg.style.display = 'block';
+            window.scrollTo(0, 0);
             setTimeout(() => errorMsg.style.display = 'none', 5000);
         }
 
@@ -587,7 +713,27 @@
             const successMsg = document.getElementById('successMsg');
             successMsg.textContent = message;
             successMsg.style.display = 'block';
+            window.scrollTo(0, 0);
             setTimeout(() => successMsg.style.display = 'none', 5000);
+        }
+
+        function updateCourseFee() {
+            const courseSelect = document.getElementById('courseType');
+            const selectedOption = courseSelect.options[courseSelect.selectedIndex];
+            const fee = selectedOption.getAttribute('data-fee');
+            const totalFeeInput = document.getElementById('totalFee');
+            
+            if (fee) {
+                totalFeeInput.value = fee;
+                if (fee === '0') {
+                    totalFeeInput.readOnly = false;
+                    totalFeeInput.focus();
+                } else {
+                    totalFeeInput.readOnly = true;
+                }
+            } else {
+                totalFeeInput.value = '';
+            }
         }
 
         function saveSettings() {
@@ -655,16 +801,20 @@
                     })
                 });
 
-                // Due to no-cors, we assume success
-                showSuccess('Payment recorded successfully!');
+                showSuccess('Student registered successfully!');
                 
                 const balance = totalFee - paymentAmount;
                 document.getElementById('balanceDisplay').style.display = 'block';
                 document.getElementById('balanceAmount').textContent = `RM ${balance.toFixed(2)}`;
                 
-                generateReceipt(studentName, studentId, phone, courseType, totalFee, paymentAmount, paymentMethod, balance, notes);
+                generateReceipt(studentName, studentId, phone, courseType, paymentAmount, paymentMethod, balance, notes);
 
                 // Clear form
+                document.getElementById('studentName').value = '';
+                document.getElementById('studentId').value = '';
+                document.getElementById('phone').value = '';
+                document.getElementById('courseType').value = '';
+                document.getElementById('totalFee').value = '';
                 document.getElementById('paymentAmount').value = '';
                 document.getElementById('notes').value = '';
 
@@ -673,7 +823,7 @@
                 console.error(error);
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Record Payment & Generate Receipt';
+                submitBtn.textContent = 'Register Student & Generate Receipt';
             }
         }
 
@@ -706,9 +856,9 @@
                 return;
             }
 
-            let html = '<table class="records-table"><thead><tr><th>Date</th><th>Name</th><th>IC/ID</th><th>Course</th><th>Total Fee</th><th>Paid</th><th>Balance</th></tr></thead><tbody>';
+            let html = '<table class="records-table"><thead><tr><th>Date</th><th>Name</th><th>IC/ID</th><th>Course</th><th>Total Fee</th><th>Paid</th><th>Balance</th><th>Action</th></tr></thead><tbody>';
             
-            records.forEach(record => {
+            records.forEach((record, index) => {
                 html += `<tr>
                     <td>${record.date}</td>
                     <td>${record.name}</td>
@@ -717,6 +867,7 @@
                     <td>RM ${parseFloat(record.totalFee).toFixed(2)}</td>
                     <td>RM ${parseFloat(record.totalPaid).toFixed(2)}</td>
                     <td>RM ${parseFloat(record.balance).toFixed(2)}</td>
+                    <td><button class="btn btn-secondary btn-small" onclick='openPaymentModal(${JSON.stringify(record)})'>💰 Add Payment</button></td>
                 </tr>`;
             });
             
@@ -733,55 +884,23 @@
             displayRecords(filtered);
         }
 
-        function generateReceipt(name, id, phone, course, totalFee, payment, method, balance, notes) {
-            const receiptNo = 'R' + Date.now();
-            const date = new Date().toLocaleDateString('en-MY', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-            });
-
-            const schoolName = document.getElementById('schoolName').value || 'YOUR DRIVING SCHOOL';
-            const schoolAddress = document.getElementById('schoolAddress').value;
-            const schoolPhone = document.getElementById('schoolPhone').value;
-            const schoolEmail = document.getElementById('schoolEmail').value;
-            const schoolReg = document.getElementById('schoolReg').value;
-
-            document.getElementById('receiptSchoolName').textContent = schoolName.toUpperCase();
-            
-            let schoolInfo = '';
-            if (schoolAddress) schoolInfo += schoolAddress + '<br>';
-            if (schoolPhone) schoolInfo += 'Tel: ' + schoolPhone + '<br>';
-            if (schoolEmail) schoolInfo += 'Email: ' + schoolEmail + '<br>';
-            if (schoolReg) schoolInfo += 'Reg No: ' + schoolReg;
-            document.getElementById('receiptSchoolInfo').innerHTML = schoolInfo;
-
-            document.getElementById('receiptNo').textContent = receiptNo;
-            document.getElementById('receiptDate').textContent = date;
-            document.getElementById('receiptStudent').textContent = name;
-            document.getElementById('receiptId').textContent = id;
-            document.getElementById('receiptPhone').textContent = phone || '-';
-            document.getElementById('receiptCourse').textContent = course;
-            document.getElementById('receiptTotalFee').textContent = `RM ${totalFee.toFixed(2)}`;
-            document.getElementById('receiptPayment').textContent = `RM ${payment.toFixed(2)}`;
-            document.getElementById('receiptMethod').textContent = method;
-            document.getElementById('receiptBalance').textContent = `RM ${balance.toFixed(2)}`;
-            
-            if (notes) {
-                document.getElementById('receiptNotesRow').style.display = 'flex';
-                document.getElementById('receiptNotes').textContent = notes;
-            } else {
-                document.getElementById('receiptNotesRow').style.display = 'none';
-            }
-
-            document.getElementById('receiptPage').style.display = 'block';
-            document.body.style.overflow = 'hidden';
+        function openPaymentModal(record) {
+            currentStudent = record;
+            document.getElementById('modalStudentName').value = record.name;
+            document.getElementById('modalStudentId').value = record.id;
+            document.getElementById('modalCurrentBalance').value = `RM ${parseFloat(record.balance).toFixed(2)}`;
+            document.getElementById('modalPaymentAmount').value = '';
+            document.getElementById('modalNotes').value = '';
+            document.getElementById('paymentModal').classList.add('active');
         }
 
-        function closeReceipt() {
-            document.getElementById('receiptPage').style.display = 'none';
-            document.body.style.overflow = 'auto';
+        function closeModal() {
+            document.getElementById('paymentModal').classList.remove('active');
+            currentStudent = null;
         }
-    </script>
-</body>
-</html>
+
+        async function submitAdditionalPayment() {
+            const scriptUrl = document.getElementById('scriptUrl').value;
+            const paymentAmount = parseFloat(document.getElementById('modalPaymentAmount').value);
+            const paymentMethod = document.getElementById('modalPaymentMethod').value;
+            const notes = document.getElementById('
