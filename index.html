@@ -904,67 +904,59 @@
 
             // Calculate new balance before sending
             const newBalance = parseFloat(currentStudent.balance) - paymentAmount;
+            
+            // Store student info before closing modal
+            const studentInfo = {
+                name: currentStudent.name,
+                id: currentStudent.id,
+                phone: currentStudent.phone,
+                course: currentStudent.course
+            };
 
-            try {
-                // Send to Google Sheets
-                fetch(scriptUrl, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'text/plain',
-                    },
-                    body: JSON.stringify({
-                        action: 'addPayment',
-                        data: {
-                            studentName: currentStudent.name,
-                            studentId: currentStudent.id,
-                            phone: currentStudent.phone,
-                            courseType: currentStudent.course,
-                            totalFee: parseFloat(currentStudent.totalFee),
-                            paymentAmount: paymentAmount,
-                            paymentMethod: paymentMethod,
-                            notes: notes
-                        }
-                    })
-                });
+            // Send to Google Sheets
+            fetch(scriptUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'text/plain',
+                },
+                body: JSON.stringify({
+                    action: 'addPayment',
+                    data: {
+                        studentName: currentStudent.name,
+                        studentId: currentStudent.id,
+                        phone: currentStudent.phone,
+                        courseType: currentStudent.course,
+                        totalFee: parseFloat(currentStudent.totalFee),
+                        paymentAmount: paymentAmount,
+                        paymentMethod: paymentMethod,
+                        notes: notes
+                    }
+                })
+            });
 
-                // Assume success (no-cors mode doesn't give us response)
-                showSuccess('Payment recorded successfully!');
-                closeModal();
-                
-                // Generate receipt
+            // Close modal first
+            closeModal();
+            
+            // Show success message
+            showSuccess('Payment recorded successfully!');
+            
+            // Small delay to ensure modal is closed, then generate receipt
+            setTimeout(() => {
                 generateReceipt(
-                    currentStudent.name,
-                    currentStudent.id,
-                    currentStudent.phone,
-                    currentStudent.course,
+                    studentInfo.name,
+                    studentInfo.id,
+                    studentInfo.phone,
+                    studentInfo.course,
                     paymentAmount,
                     paymentMethod,
                     newBalance,
                     notes
                 );
+            }, 300);
 
-                // Refresh records after a delay
-                setTimeout(() => loadRecords(), 2000);
-
-            } catch (error) {
-                // This shouldn't happen with no-cors, but just in case
-                console.error('Payment error:', error);
-                // Still show success since data likely went through
-                showSuccess('Payment recorded successfully!');
-                closeModal();
-                
-                generateReceipt(
-                    currentStudent.name,
-                    currentStudent.id,
-                    currentStudent.phone,
-                    currentStudent.course,
-                    paymentAmount,
-                    paymentMethod,
-                    newBalance,
-                    notes
-                );
-            }
+            // Refresh records after a longer delay
+            setTimeout(() => loadRecords(), 2000);
         }
 
         function generateReceipt(name, id, phone, course, payment, method, balance, notes) {
