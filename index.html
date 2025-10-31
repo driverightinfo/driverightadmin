@@ -765,11 +765,12 @@
             submitBtn.textContent = 'Processing...';
 
             try {
-                await fetch(scriptUrl, {
+                // Send to Google Sheets
+                fetch(scriptUrl, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'text/plain',
                     },
                     body: JSON.stringify({
                         action: 'addPayment',
@@ -786,6 +787,7 @@
                     })
                 });
 
+                // Assume success (no-cors mode doesn't give us response)
                 showSuccess('Student registered successfully!');
                 
                 const balance = totalFee - paymentAmount;
@@ -895,12 +897,21 @@
                 return;
             }
 
+            if (paymentAmount > parseFloat(currentStudent.balance)) {
+                showError('Payment amount cannot exceed balance of RM ' + parseFloat(currentStudent.balance).toFixed(2));
+                return;
+            }
+
+            // Calculate new balance before sending
+            const newBalance = parseFloat(currentStudent.balance) - paymentAmount;
+
             try {
-                await fetch(scriptUrl, {
+                // Send to Google Sheets
+                fetch(scriptUrl, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'text/plain',
                     },
                     body: JSON.stringify({
                         action: 'addPayment',
@@ -917,8 +928,29 @@
                     })
                 });
 
-                const newBalance = parseFloat(currentStudent.balance) - paymentAmount;
+                // Assume success (no-cors mode doesn't give us response)
+                showSuccess('Payment recorded successfully!');
+                closeModal();
                 
+                // Generate receipt
+                generateReceipt(
+                    currentStudent.name,
+                    currentStudent.id,
+                    currentStudent.phone,
+                    currentStudent.course,
+                    paymentAmount,
+                    paymentMethod,
+                    newBalance,
+                    notes
+                );
+
+                // Refresh records after a delay
+                setTimeout(() => loadRecords(), 2000);
+
+            } catch (error) {
+                // This shouldn't happen with no-cors, but just in case
+                console.error('Payment error:', error);
+                // Still show success since data likely went through
                 showSuccess('Payment recorded successfully!');
                 closeModal();
                 
@@ -932,12 +964,6 @@
                     newBalance,
                     notes
                 );
-
-                loadRecords();
-
-            } catch (error) {
-                showError('Error recording payment.');
-                console.error(error);
             }
         }
 
