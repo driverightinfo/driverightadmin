@@ -394,6 +394,14 @@
             size: A4 portrait;
             margin: 0;
         }
+
+        /* Footer */
+        footer {
+            background: #1e293b;
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -447,8 +455,14 @@
                 <select id="courseType" onchange="updateCourseFee()">
                     <option value="">Select course</option>
                     <option value="Car (Manual)" data-fee="2200">Car (Manual) - RM 2200</option>
-                    <option value="Car (Auto)" data-fee="2400">Car (Auto) - RM 2400</option>
+                    <option value="Car (Auto)" data-fee="2200">Car (Auto) - RM 2200</option>
+                    <option value="Car (Manual)" data-fee="2100">Car (Manual) - RM 2100</option>
+                    <option value="Car (Auto)" data-fee="2100">Car (Auto) - RM 2100</option>
+                    <option value="Lorry Rigid" data-fee="1800">Lorry Rigid - RM 1800</option>
+                    <option value="Lorry Articulated" data-fee="1800">Lorry Articulated - RM 1800</option>
+                    <option value="Motorcycle" data-fee="900">Motorcycle - RM 900</option>
                     <option value="Motorcycle" data-fee="800">Motorcycle - RM 800</option>
+                    <option value="GDL" data-fee="250">GDL - RM 250</option>
                     <option value="Other" data-fee="0">Other (Custom Fee)</option>
                 </select>
             </div>
@@ -657,7 +671,12 @@
             </div>
         </div>
     </div>
-
+    
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 Axiowise. All rights reserved.</p>
+    </footer>
+    
     <script>
         let allRecords = [];
         let currentStudent = null;
